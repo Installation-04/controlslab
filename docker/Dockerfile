@@ -13,6 +13,7 @@ COPY package.json package-lock.json ./
 COPY apps/web/package.json apps/web/
 COPY packages/plc-engine/package.json packages/plc-engine/
 COPY packages/sim/package.json packages/sim/
+COPY packages/factory/package.json packages/factory/
 COPY packages/content/package.json packages/content/
 RUN npm ci --no-audit --no-fund
 
