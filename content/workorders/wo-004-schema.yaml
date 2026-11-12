@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: wo-004-schema
+number: BT-0004
+title: Vérification du fonctionnement de la commande
+machine: motor-starter-3w
+priority: low
+complaint: Nouvelle installation. Vérifier que le démarreur fonctionne selon le schéma et relever la tension à la bobine.
+context: Démarrez le moteur avec MARCHE, laissez-le en marche et relevez la tension aux bornes de la bobine (A1–A2).
+hints:
+  - Appuyez sur MARCHE puis relâchez. Le contact M 13-14 doit maintenir la bobine.
+  - Posez les sondes sur A1 et A2 du contacteur M, en V~.
+objectives:
+  - { type: state, component: M, key: energized, equals: true, label: Le contacteur M est collé et reste en marche après le relâchement }
+  - { type: lamp_lit, component: LT_RUN, label: Le voyant MARCHE est allumé }
+  - { type: measured, points: ['M:A1', 'M:A2'], mode: VAC, min: 110, max: 125, label: Tension à la bobine ≈ 120 V }

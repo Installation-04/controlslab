@@ -1,0 +1,79 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: cadenassage
+order: 3
+title:
+  fr: Cadenassage et vérification d'absence de tension
+  en: Lockout/tagout and verification of absence of voltage
+summary: La séquence complète, dans l'ordre, jusqu'au « vivant – mort – vivant ».
+minutes: 30
+prerequisites: [multimetre]
+objectives:
+  - Dérouler la séquence de cadenassage dans le bon ordre.
+  - Expliquer pourquoi un arrêt normal précède l'ouverture du sectionneur.
+  - Réaliser la vérification vivant – mort – vivant sur tous les points requis.
+blocks:
+  - type: callout
+    kind: safety
+    md: |
+      Cette leçon est un **exercice**. Pour le vrai travail, suivez la procédure écrite de votre employeur et de
+      l'entreprise cliente, la réglementation applicable (RSST au Québec) et la norme **CSA Z460** (maîtrise des énergies dangereuses).
+      La procédure d'un équipement précis prime toujours sur ce résumé.
+  - type: text
+    md: |
+      ## La séquence
+
+      1. **Aviser** les personnes touchées (opérateurs, contremaître) : on arrête et on cadenasse.
+      2. **Arrêter** la machine avec ses commandes normales (bouton ARRÊT). On n'ouvre jamais un sectionneur sous charge : arc, usure, danger.
+      3. **Isoler** : ouvrir le(s) sectionneur(s) — *toutes* les sources d'énergie (électrique, pneumatique, hydraulique, gravité…).
+      4. **Cadenasser et étiqueter** : cadenas personnel, avec nom et date. **Un cadenas par personne**; la clé reste sur vous.
+      5. **Dissiper l'énergie résiduelle** : rotation d'inertie du moteur, condensateurs, ressorts, pression.
+      6. **Essayer de démarrer** (tentative de démarrage) pour confirmer que la bonne machine est isolée.
+      7. **Vérifier l'absence de tension** : **vivant – mort – vivant**.
+      8. **Remise en service** : travail terminé, outils retirés, personnes avisées, cadenas retirés *par leur propriétaire*, puis fermeture du sectionneur.
+  - type: schematic
+    machine: motor-starter-3w
+    caption: Le sectionneur SA est le dispositif d'isolement. Le côté ligne (L1-L3) reste sous tension même ouvert!
+    highlight: [DS]
+  - type: callout
+    kind: field
+    title: Le piège du côté ligne
+    md: Sectionneur ouvert, les bornes **L1-L2-L3** (côté alimentation) sont **toujours à 600 V**. Seul le côté charge (T1-T2-T3) est isolé. Ne confondez pas l'étiquette « OFF » avec l'absence de tension.
+  - type: text
+    md: |
+      ## Vivant – mort – vivant
+
+      1. **Vivant** : mesurez une source connue (ici, le côté ligne du sectionneur, L1–L2) pour prouver que *votre appareil fonctionne*.
+      2. **Mort** : mesurez **chaque** combinaison où vous allez travailler : phase-phase **et** phase-terre. Chaque mesure doit lire ~0 V.
+      3. **Vivant** : remesurez la source connue : si l'appareil est mort entre-temps (pile, fusible), votre « 0 V » ne valait rien.
+
+      Dans le simulateur, les 7 points à vérifier sont : T1–T2, T2–T3, T1–T3, **T1, T2 et T3 vers la terre (MALT)**, ainsi que le secondaire
+      du transformateur de commande (**X1–X2**). Pourquoi ce dernier? Parce qu'un circuit de commande peut parfois être alimenté
+      par une autre source : on ne suppose jamais, on mesure.
+  - type: quiz
+    id: q-loto-1
+    question: Pourquoi arrête-t-on la machine avec le bouton ARRÊT avant d'ouvrir le sectionneur?
+    choices:
+      - Pour économiser de l'énergie
+      - Parce qu'ouvrir un sectionneur sous charge peut causer un arc et endommager l'équipement ou blesser
+      - Parce que le bouton ARRÊT cadenasse la machine
+      - Ce n'est pas nécessaire
+    answer: 1
+    explain: Un sectionneur n'est pas conçu pour couper une charge moteur de façon répétée; l'arc est un danger réel. On arrête normalement, on isole ensuite.
+  - type: quiz
+    id: q-loto-2
+    question: Après avoir cadenassé, vous appuyez sur MARCHE et rien ne bouge. Que faites-vous?
+    choices:
+      - La machine est sécuritaire, on commence les travaux
+      - On continue avec la vérification d'absence de tension (vivant – mort – vivant)
+      - On retire le cadenas
+      - On ferme le sectionneur pour revérifier
+    answer: 1
+    explain: >-
+      La tentative de démarrage ne prouve que l'absence de mouvement, pas l'absence de tension : une commande ouverte ou un fusible grillé donnerait le même résultat. La mesure reste obligatoire.
+  - type: practice
+    workorder: wo-003-cadenassage
+    label: Réaliser le cadenassage complet
+references:
+  - "CSA Z460 — Maîtrise des énergies dangereuses : cadenassage et autres méthodes."
+  - CSA Z462 — Sécurité électrique en milieu de travail.
+  - RSST (Québec) — dispositions sur le cadenassage.
