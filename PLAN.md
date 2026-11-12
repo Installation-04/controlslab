@@ -88,3 +88,11 @@ docker-compose.yml  .env.example  install.sh
 - Content validation test fails on any malformed YAML.
 - Playwright smoke (preinstalled Chromium): open Lab, run seal-in ST program, press START → motor runs, inject open OL → motor stops, meter reads 120 V across OL contact.
 - `shellcheck install.sh`; run `install.sh` end-to-end if Docker is available in the container (curl `/healthz` on 12000), otherwise validate with `docker compose config` and say so.
+
+
+## Addendum — 3D cell (added during phase 1)
+- `packages/factory`: deterministic kinematic factory model (belts, items, photo/inductive sensors, pusher, bins, buttons, lights) + `CellCore` coupling **PLC ⇄ panel circuit (`sim`) ⇄ factory**. Conveyors can be driven by the *real* motor speed of the panel's circuit (`drive: panel`), so contactor/overload/E-stop/LOTO faults stop the belt.
+- Field I/O uses addresses outside the panel's own wiring (convention: `%IX1.x` / `%QX1.x`); `validateCell` enforces this.
+- Scenarios are YAML (`content/scenarios`) with scripted tests run headless by `CellRunner` (same engine as the browser).
+- `apps/web/src/cell`: three.js renderer (pure view, pulls a frame each animation frame), drag-and-drop palette, inspector with I/O mapping, panel drawer reusing `PanelWorkbench`. Loaded lazily.
+- **Not in this slice**: a free-form *panel wiring* editor (assembling components/wires by drag-and-drop). Panels are YAML machine definitions chosen from a library.

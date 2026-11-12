@@ -180,6 +180,62 @@ Le simulateur résout un vrai circuit : tout ce que vous câblez produira des te
 
 Un **nouveau type de composant** demande du code TypeScript : `packages/sim/src/library.ts` (électrique) + un symbole dans `apps/web/src/lab/Schematic.tsx` (dessin), avec tests. Ouvrez d'abord une discussion/issue.
 
+## Ajouter un scénario 3D — `content/scenarios/sc-NN-nom.yaml`
+
+Un scénario place des appareils dans la cellule 3D, donne un programme de départ et des **tests scriptés** exécutés sur la simulation.
+
+```yaml
+id: sc-04-mon-scenario
+number: SC-0004
+title: Titre
+complaint: « La plainte du client. »
+context: >-
+  Contexte, adresses d'E/S utiles.
+hints:
+  - "Indices progressifs (guillemets si le texte contient « : »)."
+editable: true                      # l'apprenant peut ajouter/déplacer des appareils non verrouillés
+entities:                           # x, z en mètres (vue de dessus); rot : 0 → +x, 90 → +z, 180 → −x, 270 → −z
+  - { id: PN1, type: panel, x: -1.6, z: -1.7, rot: 0, params: { machine: motor-starter-plc }, locked: true }
+  - { id: CV1, type: conveyor, x: 0, z: 0, rot: 0, params: { length: 3, drive: panel }, locked: true }
+  - { id: PH1, type: photo, x: 0.9, z: -0.6, rot: 90, params: { range: 0.8 }, io: { detect: '%IX1.0' } }
+plc:
+  starter: |
+    PROGRAM Main … END_PROGRAM      # doit déclarer (AT) toutes les adresses utilisées par les appareils
+  tests:
+    - id: t-un
+      title: …
+      steps:
+        - { panelPress: PB_START }  # boutons du panneau (ids de la machine)
+        - { run: 300 }              # durée simulée en ms
+        - { panelRelease: PB_START }
+        - { run: 30000 }
+        - { expectBin: { bin: BN1, kind: metal, min: 3 }, msg: Message ciblé }
+objectives:
+  - { type: plc_test, test: t-un, label: Ce qui est vérifié }
+```
+
+**Types d'appareils** (`packages/factory/src/types.ts`, tableau `SPECS`) :
+
+| Type | Signaux (E/S de l'API) | Paramètres principaux |
+|---|---|---|
+| `conveyor` | `run` (sortie) | `length`, `speed`, `drive` (`direct` : piloté par `run`; `panel` : entraîné par le moteur du panneau), `reverse` |
+| `spawner` | — | `intervalMs`, `max`, `pattern` (ex. `plastic,metal`; types : plastic, metal, cardboard) |
+| `photo` | `detect` (entrée) | `range` — faisceau dans le sens de `rot` |
+| `prox` | `detect` (entrée, **métal seulement**) | `range` |
+| `pusher` | `extend` (sortie), `retracted`, `extended` (entrées) | `stroke`, `strokeMs` — pousse dans le sens de `rot` |
+| `button` | `state` (entrée) | `contact` (NO/NC), `latching`, `color` |
+| `light` / `stacklight` | `on` / `green`,`amber`,`red` (sorties) | `color` |
+| `bin` | — | `size` — compte et retire les boîtes qui y entrent |
+| `panel` | — | `machine` (id d'une machine `mode: plc`) |
+
+**Étapes de test** : `run`, `press`/`release` (boutons de la scène), `panelPress`/`panelRelease` (boutons du panneau), `inject` (défaut du panneau), `expectBin` (`bin`, `kind`, `min`, `max`), `expectInput`/`expectOutput` (`address`, `equals`), `expectBelt` (`id`, `running`), `expectLost` (`max`). Une boîte « perdue » est tombée d'un convoyeur sans atteindre un bac.
+
+**Règles d'E/S** : les adresses du câblage du panneau (ex. `%IX0.0–0.4`, `%QX0.0–0.1`) sont réservées; les appareils de terrain utilisent `%IX1.x` / `%QX1.x`. Deux capteurs ne peuvent pas partager une adresse d'entrée.
+
+**Ajoutez toujours une solution modèle** dans `packages/content/test/scenarios.test.ts` : elle doit réussir tous les tests, et le programme de départ doit échouer. Pensez aux timings : le moteur met ~1,5 s à accélérer et ~4 s à s'arrêter par inertie.
+
+Un **nouveau type d'appareil** demande du code : `packages/factory/src/types.ts` (spécification) + `sim.ts` (comportement) + `apps/web/src/cell/scene3d.ts` (dessin 3D), avec tests.
+
 ## Contribuer au moteur d'API
 
 `packages/plc-engine`. Toute fonctionnalité ST arrive avec des tests dans `packages/plc-engine/test/` (couverture ≥ 90 %). Les erreurs ont un `code` stable et un message FR/EN (`errors.ts`).

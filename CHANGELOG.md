@@ -11,4 +11,5 @@ Format: [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · Versions: [S
 - **5 leçons** (français québécois) : loi d'Ohm, multimètre, cadenassage, lecture de schéma, premier programme ST.
 - **Bons de travail** avec vérificateur, **point de contrôle noté** sans indices.
 - **Progression locale** (navigateur), dossier imprimable, export/import (sauvegarde JSON, `.st`, contenu YAML).
+- **Cellule 3D** (`@controlslab/factory` + three.js) : convoyeurs, distributeur, capteurs photoélectrique et inductif, vérin, bacs, boutons, voyants; panneau électrique glissé-déposé dans la scène et lié à l'automate; inspecteur d'E/S avec validation; génération des déclarations ST; 3 scénarios + cellule libre; export/import de cellule.
 - **Déploiement** : un seul conteneur Docker (nginx), `docker-compose.yml`, `install.sh`.

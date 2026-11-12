@@ -3,11 +3,11 @@
  * Content registry: bundled YAML (compiled into the app by Vite) + content
  * imported by the user (kept in localStorage, validated by the same schemas).
  */
-import { parseContent, type Checkpoint, type Lesson, type WorkOrder } from '@controlslab/content';
+import { parseContent, type Checkpoint, type Lesson, type Scenario, type WorkOrder } from '@controlslab/content';
 import type { MachineDef } from '@controlslab/sim';
 import { useSyncExternalStore } from 'react';
 
-const bundled = import.meta.glob('@content/{lessons,workorders,checkpoints,machines}/*.yaml', {
+const bundled = import.meta.glob('@content/{lessons,workorders,checkpoints,machines,scenarios}/*.yaml', {
   query: '?raw',
   import: 'default',
   eager: true,
@@ -18,6 +18,7 @@ export interface Registry {
   workorders: WorkOrder[];
   checkpoints: Checkpoint[];
   machines: MachineDef[];
+  scenarios: Scenario[];
   /** ids that came from user imports. */
   local: Set<string>;
   errors: string[];
@@ -34,11 +35,11 @@ function read(): Record<string, string> {
 }
 
 function build(): Registry {
-  const reg: Registry = { lessons: [], workorders: [], checkpoints: [], machines: [], local: new Set(), errors: [] };
+  const reg: Registry = { lessons: [], workorders: [], checkpoints: [], machines: [], scenarios: [], local: new Set(), errors: [] };
   const add = (name: string, text: string, isLocal: boolean) => {
     try {
       const p = parseContent(text);
-      const list = { lesson: reg.lessons, workorder: reg.workorders, checkpoint: reg.checkpoints, machine: reg.machines }[p.kind] as Array<{ id: string }>;
+      const list = { lesson: reg.lessons, workorder: reg.workorders, checkpoint: reg.checkpoints, machine: reg.machines, scenario: reg.scenarios }[p.kind] as Array<{ id: string }>;
       const i = list.findIndex((x) => x.id === p.id);
       if (i >= 0) list.splice(i, 1); // user content overrides bundled content with the same id
       list.push(p.data as { id: string });
@@ -51,6 +52,7 @@ function build(): Registry {
   for (const [name, text] of Object.entries(read())) add(name, text, true);
   reg.lessons.sort((a, b) => a.order - b.order);
   reg.workorders.sort((a, b) => a.number.localeCompare(b.number));
+  reg.scenarios.sort((a, b) => a.number.localeCompare(b.number));
   return reg;
 }
 

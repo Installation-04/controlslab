@@ -162,7 +162,7 @@ export const SPECS: Record<EntityType, EntitySpec> = {
   },
   panel: {
     label: L('Panneau électrique', 'Electrical panel'),
-    size: () => [0.8, 0.35],
+    size: () => [0.35, 0.8],
     signals: [],
     params: [{ key: 'machine', label: L('Panneau', 'Panel'), type: 'text', default: 'motor-starter-plc' }],
   },

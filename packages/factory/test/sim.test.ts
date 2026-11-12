@@ -199,6 +199,7 @@ describe('validation and helpers', () => {
         { id: 'PH5', type: 'photo', x: 0, z: 0, rot: 0 },
         { id: 'BN1', type: 'bin', x: 0, z: 0, rot: 0 },
         { id: 'BN2', type: 'bin', x: 0.2, z: 0, rot: 90 },
+        { id: 'PN1', type: 'panel', x: 0.2, z: 0, rot: 0 },
       ],
       panel,
     );

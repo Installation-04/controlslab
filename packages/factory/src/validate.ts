@@ -63,7 +63,8 @@ export function validateCell(entities: EntityDef[], panelDef?: MachineDef): Issu
       const a = solid[i]!;
       const b = solid[j]!;
       if (a.type === 'spawner' || b.type === 'spawner') continue;
-      if (a.type === 'conveyor' && b.type === 'conveyor') continue; // belts may chain end to end
+      if (a.type === 'conveyor' && (b.type === 'conveyor' || b.type === 'bin')) continue; // belts chain end to end; a bin sits under the belt end
+      if (b.type === 'conveyor' && a.type === 'bin') continue;
       if (footprintsOverlap(a, b)) issues.push({ level: 'warning', entity: a.id, code: 'overlap', detail: b.id });
     }
   }

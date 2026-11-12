@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+import { lazy, Suspense } from 'react';
 import { HashRouter, NavLink, Route, Routes } from 'react-router-dom';
 import { setLang, useT } from './i18n';
 import { CheckpointPage } from './routes/Checkpoint';
@@ -8,6 +9,10 @@ import { LessonPage, LessonsList } from './routes/Lessons';
 import { OrderPage, OrdersList } from './routes/Orders';
 import { RecordPage } from './routes/Record';
 import { SandboxPage } from './routes/Sandbox';
+
+// The 3D cell (three.js) is loaded on demand to keep the first page light.
+const CellsList = lazy(() => import('./cell/CellPage').then((m) => ({ default: m.CellsList })));
+const CellPage = lazy(() => import('./cell/CellPage').then((m) => ({ default: m.CellPage })));
 
 export function App() {
   const { t, lang } = useT();
@@ -22,6 +27,7 @@ export function App() {
         <nav aria-label="Principal">
           <NavLink to="/lessons">{t('nav.lessons')}</NavLink>
           <NavLink to="/orders">{t('nav.workorders')}</NavLink>
+          <NavLink to="/cells">{t('nav.cells')}</NavLink>
           <NavLink to="/checkpoint">{t('nav.checkpoint')}</NavLink>
           <NavLink to="/lab">{t('nav.sandbox')}</NavLink>
           <NavLink to="/record">{t('nav.record')}</NavLink>
@@ -33,18 +39,22 @@ export function App() {
         </div>
       </header>
       <div id="main">
+        <Suspense fallback={<main className="page"><p className="muted">…</p></main>}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/lessons" element={<LessonsList />} />
           <Route path="/lessons/:id" element={<LessonPage />} />
           <Route path="/orders" element={<OrdersList />} />
           <Route path="/orders/:id" element={<OrderPage />} />
+          <Route path="/cells" element={<CellsList />} />
+          <Route path="/cells/:id" element={<CellPage />} />
           <Route path="/checkpoint" element={<CheckpointPage />} />
           <Route path="/lab" element={<SandboxPage />} />
           <Route path="/record" element={<RecordPage />} />
           <Route path="/data" element={<DataPage />} />
           <Route path="*" element={<Home />} />
         </Routes>
+        </Suspense>
       </div>
       <footer className="foot no-print">{t('footer')}</footer>
     </HashRouter>

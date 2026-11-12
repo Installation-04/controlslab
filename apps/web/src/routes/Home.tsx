@@ -24,6 +24,7 @@ export function Home() {
       <section className="tiles">
         <Link to="/lessons" className="tile"><strong>{t('nav.lessons')}</strong><span>{reg.lessons.length}</span></Link>
         <Link to="/orders" className="tile"><strong>{t('nav.workorders')}</strong><span>{reg.workorders.length}</span></Link>
+        <Link to="/cells" className="tile"><strong>{t('nav.cells')}</strong><span>{reg.scenarios.length + 1}</span></Link>
         <Link to="/checkpoint" className="tile"><strong>{t('nav.checkpoint')}</strong><span>{t('cp.nohints').split('.')[0]}</span></Link>
         <Link to="/record" className="tile"><strong>{t('nav.record')}</strong><span>{t('record.print')}</span></Link>
       </section>
