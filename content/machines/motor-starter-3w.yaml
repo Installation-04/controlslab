@@ -126,7 +126,7 @@ components:
     parts:
       poles: {at: [60, 290]}
       coil: {at: [800, 460]}
-      aux: {at: [700, 510]}
+      aux: {at: [700, 535]}
   - id: OL
     type: overload
     tag: OL
@@ -281,11 +281,13 @@ wires:
     from: F1:2
     to: F4:1
     via: [[60, 250]]
+    junctions: [[60, 250]]
   - id: W17
     label: L3B
     from: F3:2
     to: F5:1
     via: [[160, 280]]
+    junctions: [[160, 280]]
   - id: W18
     label: H1
     from: F4:2
@@ -355,7 +357,7 @@ wires:
     label: "3"
     from: J3:T
     to: M:13
-    via: [[685, 510]]
+    via: [[685, 535]]
   - id: W34
     label: "4"
     from: PB_START:2
@@ -364,7 +366,7 @@ wires:
     label: "4"
     from: M:14
     to: J4:T
-    via: [[780, 510]]
+    via: [[780, 535]]
   - id: W36
     label: "4"
     from: J4:T
@@ -459,5 +461,5 @@ faults:
       fr: Fil 4 coupé entre la borne 4 et la bobine M (A1)
       en: Wire 4 open between terminal 4 and coil M (A1)
 notes:
-  - {text: {fr: CIRCUIT DE PUISSANCE 600 V, en: POWER CIRCUIT 600 V}, at: [40, 20], size: 13}
+  - {text: {fr: CIRCUIT DE PUISSANCE 600 V, en: POWER CIRCUIT 600 V}, at: [300, 30], size: 13}
   - {text: {fr: CIRCUIT DE COMMANDE 120 V, en: CONTROL CIRCUIT 120 V}, at: [500, 395], size: 13}

@@ -31,6 +31,8 @@ export interface WireDef {
   to: string;
   /** Optional intermediate points for drawing. Default: orthogonal L route. */
   via?: Point[];
+  /** Junction dots (taps) drawn on the schematic. */
+  junctions?: Point[];
 }
 
 export interface FaultDef {

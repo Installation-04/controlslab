@@ -358,11 +358,13 @@ wires:
     from: F1:2
     to: F4:1
     via: [[60, 250]]
+    junctions: [[60, 250]]
   - id: W17
     label: L3B
     from: F3:2
     to: F5:1
     via: [[160, 280]]
+    junctions: [[160, 280]]
   - id: W18
     label: H1
     from: F4:2
@@ -634,5 +636,5 @@ plc:
 
     END_PROGRAM
 notes:
-  - {text: {fr: CIRCUIT DE PUISSANCE 600 V, en: POWER CIRCUIT 600 V}, at: [40, 20], size: 13}
+  - {text: {fr: CIRCUIT DE PUISSANCE 600 V, en: POWER CIRCUIT 600 V}, at: [300, 30], size: 13}
   - {text: {fr: CIRCUIT DE COMMANDE 120 V, en: CONTROL CIRCUIT 120 V}, at: [500, 395], size: 13}
