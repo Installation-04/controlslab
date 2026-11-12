@@ -1,0 +1,85 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: sc-02-lot-de-3
+number: SC-0002
+title: Compter un lot de 3 boîtes
+complaint: « Je veux que le convoyeur s'arrête quand 3 boîtes sont passées devant le détecteur, que la colonne lumineuse passe à l'ambre, et qu'on redémarre avec le bouton de réinitialisation. »
+context: >-
+  Un détecteur photoélectrique est placé au bout du convoyeur (%IX1.0). Le bouton de réinitialisation est sur %IX1.1.
+  La colonne lumineuse : vert %QX1.0, ambre %QX1.1, rouge %QX1.2. Utilisez un compteur CTU.
+hints:
+  - Un compteur CTU compte les fronts montants de CU et se réinitialise avec R. Sa sortie Q passe à TRUE quand CV ≥ PV.
+  - Ajoutez « NOT LotPlein » à l'équation d'auto-maintien pour couper le moteur à la fin du lot.
+  - Vert = convoyeur en marche (RetourM), ambre = lot plein, rouge = surcharge.
+editable: true
+entities:
+  - { id: PN1, type: panel, x: -1.6, z: -1.7, rot: 0, params: { machine: motor-starter-plc }, locked: true, name: Panneau de commande }
+  - { id: CV1, type: conveyor, x: 0, z: 0, rot: 0, params: { length: 3, drive: panel }, locked: true }
+  - { id: SP1, type: spawner, x: -1.2, z: 0, rot: 0, params: { intervalMs: 2500, max: 8, pattern: plastic }, locked: true }
+  - { id: PH1, type: photo, x: 0.9, z: -0.6, rot: 90, params: { range: 0.8 }, io: { detect: '%IX1.0' } }
+  - { id: BT1, type: button, x: -0.4, z: -1.2, rot: 0, params: { contact: NO, color: black }, io: { state: '%IX1.1' }, name: Réinitialisation }
+  - { id: SL1, type: stacklight, x: 1.4, z: -0.9, rot: 0, io: { green: '%QX1.0', amber: '%QX1.1', red: '%QX1.2' } }
+  - { id: BN1, type: bin, x: 1.65, z: 0, rot: 0, params: { size: 0.7 }, locked: true }
+plc:
+  starter: |
+    PROGRAM Main
+    VAR
+        Marche       AT %IX0.0 : BOOL;
+        Arret        AT %IX0.1 : BOOL;
+        Surcharge    AT %IX0.2 : BOOL;
+        AU_OK        AT %IX0.3 : BOOL;
+        RetourM      AT %IX0.4 : BOOL;
+        BobineM      AT %QX0.0 : BOOL;
+        VoyantMarche AT %QX0.1 : BOOL;
+        Detecteur    AT %IX1.0 : BOOL;   (* détecteur photoélectrique *)
+        Reinit       AT %IX1.1 : BOOL;   (* bouton de réinitialisation *)
+        Vert         AT %QX1.0 : BOOL;
+        Ambre        AT %QX1.1 : BOOL;
+        Rouge        AT %QX1.2 : BOOL;
+    END_VAR
+
+    (* À compléter : démarreur + compteur de lot + colonne lumineuse *)
+
+    END_PROGRAM
+  tests:
+    - id: t-lot
+      title: S'arrête après 3 boîtes, colonne ambre
+      steps:
+        - { panelPress: PB_START }
+        - { run: 300 }
+        - { panelRelease: PB_START }
+        - { run: 4000 }
+        - { expectOutput: { address: '%QX1.0', equals: true }, msg: La colonne doit être verte pendant la marche }
+        - { expectOutput: { address: '%QX1.1', equals: false } }
+        - { run: 30000 }
+        - { expectOutput: { address: '%QX1.1', equals: true }, msg: Après 3 boîtes, la colonne doit passer à l'ambre }
+        - { expectOutput: { address: '%QX1.0', equals: false }, msg: Le vert doit s'éteindre quand le convoyeur s'arrête }
+        - { expectBelt: { id: CV1, running: false }, msg: Le convoyeur doit être arrêté une fois le lot complet }
+    - id: t-pas-avant
+      title: Ne s'arrête pas avant 3 boîtes
+      steps:
+        - { panelPress: PB_START }
+        - { run: 300 }
+        - { panelRelease: PB_START }
+        - { run: 8500 }
+        - { expectBelt: { id: CV1, running: true }, msg: Le convoyeur ne doit pas s'arrêter avant la 3e boîte }
+        - { expectOutput: { address: '%QX1.1', equals: false }, msg: L'ambre ne doit pas s'allumer avant la 3e boîte }
+    - id: t-reinit
+      title: La réinitialisation permet de repartir
+      steps:
+        - { panelPress: PB_START }
+        - { run: 300 }
+        - { panelRelease: PB_START }
+        - { run: 30000 }
+        - { press: BT1 }
+        - { run: 300 }
+        - { release: BT1 }
+        - { expectOutput: { address: '%QX1.1', equals: false }, msg: La réinitialisation doit éteindre l'ambre }
+        - { panelPress: PB_START }
+        - { run: 300 }
+        - { panelRelease: PB_START }
+        - { run: 4000 }
+        - { expectBelt: { id: CV1, running: true }, msg: Après la réinitialisation et MARCHE, le convoyeur doit repartir }
+objectives:
+  - { type: plc_test, test: t-lot, label: Arrêt à 3 boîtes et colonne ambre }
+  - { type: plc_test, test: t-pas-avant, label: Pas d'arrêt prématuré }
+  - { type: plc_test, test: t-reinit, label: Réinitialisation du lot }

@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: cp1-demarreur
+title: Point de contrôle 1 — Dépannage du démarreur de moteur
+machine: motor-starter-3w
+intro: |
+  Un défaut a été introduit au hasard sur le démarreur. **Aucun indice** n'est offert. Vous devez :
+  trouver la cause par vos mesures, la **diagnostiquer**, cadenasser, réparer, puis remettre en service.
+  Note de passage : 80 %.
+pool: [ol_open, f6_blown, m_coil_open, stop_open, m_aux_open, wire4_open]
+timeLimitMinutes: 30
+passScore: 80
+weights: { diagnosis: 40, loto: 30, efficiency: 20, restore: 10 }
+efficiency: { freeMeasurements: 12, perExtraMeasurement: 1, perWrongPart: 5 }

@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: wo-010-surcharge
+number: BT-0010
+title: Le moteur ne démarre pas
+machine: motor-starter-3w
+priority: urgent
+complaint: « J'appuie sur MARCHE et il ne se passe rien. Le voyant ne s'allume pas et ça ne claque même pas. »
+context: Moteur de pompe 5 HP, 600 V. Aucun déclenchement visible. Le disjoncteur est fermé.
+requiresDiagnosis: true
+hints:
+  - Pas de « clac » du contacteur = la bobine ne reçoit pas ses 120 V. Mesurez en travers des contacts en série avec la bobine, MARCHE appuyé.
+  - Où apparaît la pleine tension dans un circuit en série? Aux bornes de l'élément ouvert.
+  - Un contact de surcharge peut être défectueux même si le relais n'est pas déclenché.
+faults: [ol_open]
+objectives:
+  - { type: measured, points: ['OL:95', 'OL:96'], mode: VAC, min: 100, label: Mesure en travers du contact 95-96 (120 V attendus si ouvert) }
+  - { type: diagnosis, label: Diagnostic correct }
+  - { type: loto_step, step: verify, label: Cadenassage complet avant l'intervention }
+  - { type: replaced, target: OL, label: Relais de surcharge remplacé }
+  - { type: faults_cleared, label: Défaut corrigé }
+  - { type: loto_step, step: restore, label: Remise en service }
+  - { type: no_violation, label: Aucune faute de sécurité }
