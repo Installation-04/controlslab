@@ -1,0 +1,77 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: loi-ohm
+order: 1
+title:
+  fr: La loi d'Ohm sur le terrain
+  en: Ohm's law in the field
+summary: Tension, courant, résistance et puissance — et ce que ça veut dire quand on tient un multimètre devant un contacteur.
+minutes: 25
+objectives:
+  - Appliquer V = R × I et P = V × I pour prévoir ce qu'un circuit devrait mesurer.
+  - Distinguer la résistance mesurée à froid (ohmmètre) du courant réel en service.
+  - Prévoir la tension aux bornes d'un élément ouvert dans un circuit en série.
+blocks:
+  - type: text
+    md: |
+      Tout dépannage commence par une **attente** : « qu'est-ce que je devrais lire ici? ». Si on ne sait pas
+      prévoir la mesure, on ne peut pas reconnaître une mesure fautive. La loi d'Ohm est l'outil qui donne cette attente.
+
+      - "**V** : tension en volts (V), la « pression » qui pousse le courant."
+      - "**I** : courant en ampères (A), le débit de charges."
+      - "**R** : résistance en ohms (Ω), l'opposition au courant."
+      - "**P** : puissance en watts (W)."
+
+      **V = R × I**  ·  **I = V ÷ R**  ·  **R = V ÷ I**  ·  **P = V × I**
+  - type: calc
+    id: calc-ohm-1
+    kind: ohm
+    preset: { V: 120, R: 240 }
+  - type: callout
+    kind: field
+    title: Le voyant de 6 W
+    md: |
+      Un voyant 120 V de 6 W tire I = P ÷ V = 6 ÷ 120 = **50 mA**. Sa résistance en service est donc R = 120 ÷ 0,05 = **2 400 Ω**
+      (le filament froid, lui, ne lit qu'environ le dixième à l'ohmmètre). Un fusible de 2 A sur le secondaire du transformateur
+      de commande protège le câblage, pas le voyant : il ne grillera jamais pour une surcharge de voyant.
+  - type: quiz
+    id: q-ohm-1
+    question: Une bobine de contacteur de 120 V tire 67 mA en service. Quelle est son impédance approximative?
+    choices:
+      - 8 Ω
+      - 110 Ω
+      - 1 800 Ω
+      - 18 000 Ω
+    answer: 2
+    explain: R = V ÷ I = 120 ÷ 0,067 ≈ 1 800 Ω. Mais à l'ohmmètre (courant continu), la même bobine lit environ 110 Ω seulement, car l'inductance n'y joue aucun rôle. C'est normal; ne la déclarez pas défectueuse sur cette seule base.
+  - type: text
+    md: |
+      ## Circuit en série : où va la tension?
+
+      Dans un circuit en série, **le même courant** traverse tous les éléments et la tension se répartit au prorata des résistances.
+      Dans notre circuit de commande à 3 fils, la bobine, le contact de surcharge, le bouton ARRÊT et le fusible sont en série :
+
+      - "Tout fermé : les contacts ont une résistance de quelques milliohms, donc ils « chutent » presque 0 V. Toute la tension (120 V) se retrouve **aux bornes de la bobine**."
+      - "Un contact **ouvert** a une résistance quasi infinie : il prend toute la tension (120 V à ses bornes) et la bobine en reçoit 0 V."
+
+      > **Règle d'or du dépanneur** : dans un circuit en série, la tension de source apparaît aux bornes de l'élément ouvert.
+      > Mesurez en travers des contacts, pas seulement « du fil vers la terre ».
+  - type: quiz
+    id: q-ohm-2
+    question: Le moteur ne démarre pas. Vous lisez 120 V entre les bornes 95 et 96 du relais de surcharge et 0 V aux bornes de la bobine. Que concluez-vous?
+    choices:
+      - La bobine est brûlée
+      - Le contact 95-96 est ouvert
+      - Le fusible secondaire est grillé
+      - Le transformateur de commande est défectueux
+    answer: 1
+    explain: 120 V en travers d'un contact fermé « normalement » = ce contact est ouvert. Si le fusible ou le transformateur étaient en cause, vous n'auriez pas 120 V disponible jusque-là. Une bobine brûlée, elle, laisserait les 120 V à ses propres bornes.
+  - type: callout
+    kind: safety
+    title: Les chiffres qui tuent
+    md: Le courant fait le dommage, pas la tension seule. Quelques dizaines de milliampères à travers le thorax suffisent à causer une fibrillation. Une main humide sur 120 V peut en laisser passer assez. Traitez **tout** conducteur comme sous tension jusqu'à preuve du contraire.
+  - type: callout
+    kind: tip
+    title: Chiffres ronds
+    md: 'Sur le terrain on arrondit : 600 V triphasé ÷ 1,732 ≈ 347 V entre une phase et la terre; 5 HP à 600 V ≈ 5,2 A pleine charge; 120 V ÷ 8 VA ≈ 67 mA pour un contacteur NEMA 1.'
+references:
+  - Votre manuel de formation ou la plaque signalétique du moteur pour les courants de pleine charge.

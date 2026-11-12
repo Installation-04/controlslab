@@ -1,0 +1,93 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: premier-programme-st
+order: 5
+title:
+  fr: Premier programme ST — l'auto-maintien
+  en: First ST program — the seal-in
+summary: Écrire en texte structuré (IEC 61131-3) la logique MARCHE/ARRÊT d'un démarreur de moteur et la tester sur la machine virtuelle.
+minutes: 40
+prerequisites: [lire-schema]
+objectives:
+  - Déclarer des variables liées aux entrées/sorties (AT %IX / %QX).
+  - Traduire le circuit à 3 fils en une équation booléenne d'auto-maintien.
+  - Comprendre le cycle de balayage et pourquoi la sortie « se voit » elle-même.
+blocks:
+  - type: text
+    md: |
+      Dans la machine **« démarreur commandé par API »**, les boutons sont câblés aux **entrées** de l'automate et la bobine M
+      à une **sortie relais**. L'arrêt d'urgence et le contact 95-96 du relais de surcharge restent **câblés en série avec la bobine** :
+      la sécurité ne dépend jamais uniquement d'un programme.
+
+      ## Le cycle de balayage (scan)
+
+      À chaque cycle (10 ms ici) : **1.** lecture des entrées → **2.** exécution du programme, de haut en bas → **3.** écriture des sorties.
+      Une sortie lue dans le programme garde la valeur du cycle précédent : c'est ce qui permet l'auto-maintien.
+  - type: code
+    lang: st
+    title: Déclarations
+    code: |
+      PROGRAM Main
+      VAR
+          Marche    AT %IX0.0 : BOOL;   (* MARCHE, NO : TRUE quand appuyé *)
+          Arret     AT %IX0.1 : BOOL;   (* ARRÊT, NF : TRUE quand NON appuyé *)
+          Surcharge AT %IX0.2 : BOOL;   (* contact 97-98 : TRUE quand déclenché *)
+          AU_OK     AT %IX0.3 : BOOL;   (* arrêt d'urgence : TRUE quand relâché *)
+          BobineM   AT %QX0.0 : BOOL;   (* bobine du contacteur *)
+      END_VAR
+  - type: callout
+    kind: field
+    title: Attention aux polarités
+    md: Un bouton ARRÊT câblé NF donne **TRUE au repos**. Dans le programme, on écrit donc `Arret` (et non `NOT Arret`) comme condition de marche. Beaucoup de « bogues » d'automatisme sont en fait des erreurs de polarité entre le câblage et le programme.
+  - type: text
+    md: |
+      ## L'équation d'auto-maintien
+
+      Le circuit à 3 fils dit : « la bobine est alimentée si (MARCHE **ou** déjà alimentée) **et** que rien d'arrêt n'est actif ».
+      En texte structuré :
+  - type: code
+    lang: st
+    title: Logique
+    code: |
+      BobineM := (Marche OR BobineM) AND Arret AND NOT Surcharge AND AU_OK;
+      END_PROGRAM
+  - type: text
+    md: |
+      ## Version avec temporisation
+
+      Les automaticiens ajoutent souvent un délai de redémarrage ou de défaut de démarrage. Exemple : si l'auxiliaire M 13-14 ne se ferme pas 1 s après la commande, on coupe.
+  - type: code
+    lang: st
+    title: Supervision avec TON
+    code: |
+      VAR
+          Supervision : TON;
+          RetourM AT %IX0.4 : BOOL;
+      END_VAR
+
+      Supervision(IN := BobineM AND NOT RetourM, PT := T#1s);
+      (* Supervision.Q = TRUE : la bobine est commandée mais le contacteur ne répond pas *)
+  - type: quiz
+    id: q-st-1
+    question: Un collègue câble le bouton ARRÊT en NO. Que faut-il changer dans l'équation pour que ça marche?
+    choices:
+      - Rien
+      - Remplacer Arret par NOT Arret
+      - Remplacer AND par OR
+      - Supprimer BobineM de l'équation
+    answer: 1
+    explain: >-
+      En NO, l'entrée est TRUE quand on appuie : la condition de marche devient NOT Arret. Mais attention — ce câblage NO n'est pas à sécurité positive et ne devrait pas servir d'arrêt.
+  - type: quiz
+    id: q-st-2
+    question: Pourquoi BobineM apparaît-elle des deux côtés de l'équation?
+    choices:
+      - C'est une erreur
+      - "Pour réaliser l'auto-maintien : la valeur du balayage précédent maintient la sortie"
+      - Pour doubler la vitesse
+      - Pour la protéger des surcharges
+    answer: 1
+  - type: practice
+    workorder: wo-005-programme-st
+    label: Écrire et tester le programme d'auto-maintien
+references:
+  - IEC 61131-3 — Langages de programmation pour automates programmables.

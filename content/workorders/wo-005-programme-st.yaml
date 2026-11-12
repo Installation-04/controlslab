@@ -1,0 +1,75 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: wo-005-programme-st
+number: BT-0005
+title: Programmer l'auto-maintien du démarreur
+machine: motor-starter-plc
+priority: normal
+complaint: Le démarreur commandé par API est câblé mais l'automate n'a pas de programme. Écrivez la logique MARCHE/ARRÊT.
+context: Le programme de départ contient les déclarations. Écrivez l'équation d'auto-maintien, chargez-la dans l'automate virtuel et testez sur la machine.
+hints:
+  - La bobine s'alimente si (MARCHE ou déjà alimentée) et que ARRÊT (NF) est TRUE, la surcharge est FALSE et l'arrêt d'urgence est relâché.
+  - Écrivez BobineM := (Marche OR BobineM) AND ...;
+requiresDiagnosis: false
+plc:
+  starter: |
+    PROGRAM Main
+    VAR
+        Marche       AT %IX0.0 : BOOL;   (* MARCHE, NO : TRUE quand appuyé *)
+        Arret        AT %IX0.1 : BOOL;   (* ARRÊT, NF : TRUE quand non appuyé *)
+        Surcharge    AT %IX0.2 : BOOL;   (* Relais de surcharge déclenché (97-98) *)
+        AU_OK        AT %IX0.3 : BOOL;   (* Arrêt d'urgence relâché *)
+        RetourM      AT %IX0.4 : BOOL;   (* Contact auxiliaire M 13-14 *)
+        BobineM      AT %QX0.0 : BOOL;   (* Bobine du contacteur M *)
+        VoyantMarche AT %QX0.1 : BOOL;   (* Voyant MARCHE *)
+    END_VAR
+
+    (* À compléter : logique d'auto-maintien *)
+
+    END_PROGRAM
+  tests:
+    - id: t-demarrage
+      title: MARCHE démarre et la bobine reste collée après le relâchement
+      steps:
+        - { expect: { component: M, key: energized, equals: false }, msg: La bobine ne doit pas être alimentée sans commande }
+        - { press: PB_START }
+        - { wait: 100 }
+        - { release: PB_START }
+        - { wait: 300 }
+        - { expect: { component: M, key: energized, equals: true }, msg: Le contacteur doit rester collé après le relâchement de MARCHE (auto-maintien) }
+    - id: t-arret
+      title: ARRÊT coupe et le moteur ne repart pas seul
+      steps:
+        - { press: PB_START }
+        - { wait: 100 }
+        - { release: PB_START }
+        - { wait: 200 }
+        - { press: PB_STOP }
+        - { wait: 100 }
+        - { expect: { component: M, key: energized, equals: false }, msg: ARRÊT doit couper la bobine }
+        - { release: PB_STOP }
+        - { wait: 300 }
+        - { expect: { component: M, key: energized, equals: false }, msg: Le moteur ne doit pas redémarrer au relâchement de ARRÊT }
+    - id: t-urgence
+      title: L'arrêt d'urgence coupe la commande
+      steps:
+        - { press: PB_START }
+        - { wait: 100 }
+        - { release: PB_START }
+        - { wait: 200 }
+        - { press: PB_ES }
+        - { wait: 100 }
+        - { expect: { component: M, key: energized, equals: false } }
+        - { expectOutput: '%QX0.0', equals: false, msg: Le programme doit aussi couper BobineM quand l'arrêt d'urgence est enfoncé }
+    - id: t-voyant
+      title: Le voyant MARCHE suit le contacteur
+      steps:
+        - { press: PB_START }
+        - { wait: 100 }
+        - { release: PB_START }
+        - { wait: 400 }
+        - { expect: { component: LT_RUN, key: lit, equals: true }, msg: Le voyant MARCHE doit s'allumer quand le moteur tourne (VoyantMarche := RetourM) }
+objectives:
+  - { type: plc_test, test: t-demarrage, label: Démarrage et auto-maintien }
+  - { type: plc_test, test: t-arret, label: Arrêt sans redémarrage intempestif }
+  - { type: plc_test, test: t-urgence, label: Arrêt d'urgence respecté par le programme }
+  - { type: plc_test, test: t-voyant, label: Voyant MARCHE }

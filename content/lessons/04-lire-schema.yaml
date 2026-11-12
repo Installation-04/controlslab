@@ -1,0 +1,68 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: lire-schema
+order: 4
+title:
+  fr: Lire un schéma de commande
+  en: Reading a control schematic
+summary: Numéros de fils, symboles, logique à 3 fils — suivre le courant du fil 1 jusqu'à X2.
+minutes: 35
+prerequisites: [multimetre]
+objectives:
+  - "Reconnaître les symboles : sectionneur, fusible, contacteur, relais de surcharge, boutons, voyants."
+  - Suivre le chemin du courant dans le circuit de commande et expliquer l'auto-maintien.
+  - Utiliser les numéros de fils pour choisir où mesurer.
+blocks:
+  - type: text
+    md: |
+      Un schéma n'est pas une photo : il montre la **logique** (qui commande quoi), pas la position physique.
+      Deux conventions à connaître :
+
+      - "**Puissance en haut ou à gauche**, commande à côté, souvent à l'échelle (ladder) entre deux rails : ici le fil **1** (120 V) et **X2** (neutre du secondaire)."
+      - "Un **même numéro de fil** désigne un même point électrique : tous les fils numérotés 4 sont au même potentiel (sauf s'ils passent par un contact ouvert!)."
+  - type: schematic
+    machine: motor-starter-3w
+    caption: Démarreur 3 fils. Le circuit de commande est dans la moitié inférieure.
+  - type: text
+    md: |
+      ## Suivre le courant
+
+      De **1** (secondaire du TC, via F6) vers **X2** :
+
+      1. **PB1 ARRÊT (NF)** : normalement fermé, il laisse passer. Le fil devient **2**.
+      2. **AU arrêt d'urgence (NF)** : fermé, le fil devient **3**.
+      3. **PB2 MARCHE (NO)** : ouvert au repos. Appuyé, il relie 3 à **4**.
+      4. **Contact auxiliaire M 13-14 (NO)**, en parallèle sur MARCHE : une fois le contacteur collé, il ferme et **maintient** la bobine même quand on relâche MARCHE. C'est l'**auto-maintien** (seal-in).
+      5. **Bobine M (A1-A2)**, fil 4 puis 5.
+      6. **Contact de surcharge OL 95-96 (NF)**, fil 5 vers **X2**.
+
+      Si **n'importe quel** contact en série s'ouvre (ARRÊT, AU, 95-96), la bobine tombe et l'auto-maintien se défait : le moteur ne repart pas seul. C'est le principe de la **protection à minimum de tension** (retour de tension ≠ redémarrage).
+  - type: callout
+    kind: tip
+    title: Pourquoi les boutons d'arrêt sont NF
+    md: >-
+      Si un fil se coupe ou qu'un contact se décolle, le circuit s'ouvre et la machine **s'arrête**. Un arrêt câblé en NO ne ferait rien si le fil était coupé : c'est la sécurité positive (fail-safe).
+  - type: quiz
+    id: q-sch-1
+    question: Vous maintenez MARCHE, le moteur démarre, vous relâchez et il s'arrête. Quel élément est le plus probable?
+    choices:
+      - Le contact de surcharge
+      - Le contact d'auto-maintien M 13-14
+      - Le bouton ARRÊT
+      - Le fusible principal
+    answer: 1
+    explain: >-
+      Tant que MARCHE est tenu, la bobine est alimentée par MARCHE. Au relâchement, seul 13-14 peut la maintenir : s'il ne ferme pas (contact usé, câblage), le moteur tombe.
+  - type: quiz
+    id: q-sch-2
+    question: Sur le schéma, quel est le but du contact M 13-14?
+    choices:
+      - Alimenter le moteur
+      - Maintenir la bobine alimentée après le relâchement de MARCHE
+      - Protéger contre les surcharges
+      - Allumer le voyant de surcharge
+    answer: 1
+  - type: practice
+    workorder: wo-004-schema
+    label: Démarrer le moteur et relever la tension à la bobine
+references:
+  - Le schéma de la machine, fichier content/machines/motor-starter-3w.yaml (format ouvert).

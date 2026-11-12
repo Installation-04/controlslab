@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: wo-003-cadenassage
+number: BT-0003
+title: Cadenassage du démarreur — entretien préventif
+machine: motor-starter-3w
+priority: normal
+complaint: Entretien préventif annuel du démarreur (resserrage des bornes). Le moteur tourne actuellement.
+context: Le moteur est en marche. Appliquez la procédure de cadenassage complète, jusqu'à la vérification d'absence de tension, puis terminez et remettez en service.
+hints:
+  - Dans le panneau de cadenassage, suivez les étapes dans l'ordre. Le prochain geste à poser est indiqué.
+  - Le côté ligne du sectionneur est toujours sous tension — c'est votre « vivant » pour vérifier l'appareil.
+  - Mesurez ensuite les 7 points « morts », puis revérifiez le vivant.
+objectives:
+  - { type: loto_step, step: notify, label: Personnes avisées }
+  - { type: loto_step, step: shutdown, label: Arrêt normal avant d'isoler (pas d'ouverture du sectionneur en charge) }
+  - { type: loto_step, step: lockout, label: Sectionneur ouvert, cadenassé et étiqueté }
+  - { type: loto_step, step: stored_energy, label: Énergie résiduelle dissipée (moteur arrêté) }
+  - { type: loto_step, step: try_start, label: Tentative de démarrage }
+  - { type: loto_step, step: verify, label: Vérification vivant – mort – vivant complète }
+  - { type: loto_step, step: restore, label: Remise en service dans l'ordre }
+  - { type: no_violation, label: Aucune faute de sécurité }

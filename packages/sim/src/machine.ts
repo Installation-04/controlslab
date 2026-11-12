@@ -368,7 +368,10 @@ export class Machine {
     if (a !== GND) this.checkTerminal(a);
     if (b !== GND) this.checkTerminal(b);
     const vab = this.vab(a, b);
-    const energized = Math.max(vab, this.voltage(a), this.voltage(b)) > LIVE_THRESHOLD;
+    // A powered panel is live even where a node happens to sit near 0 V (e.g. a coil tied to X2):
+    // an ohmmeter must only be used after isolation, so any closed isolator counts as energized.
+    const powered = [...this.comps.values()].some((c) => c.def.type === 'disconnect3' && c.state.on === true);
+    const energized = powered || Math.max(vab, this.voltage(a), this.voltage(b)) > LIVE_THRESHOLD;
     let reading: MeterReading;
     switch (mode) {
       case 'VAC':

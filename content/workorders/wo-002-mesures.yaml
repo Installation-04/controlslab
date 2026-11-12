@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: wo-002-mesures
+number: BT-0002
+title: Relevés de tension sur le démarreur
+machine: motor-starter-3w
+priority: low
+complaint: Le contremaître veut une confirmation des tensions avant la mise en route d'une nouvelle machine.
+context: Le démarreur est sous tension, le moteur est arrêté. Relevez la tension d'alimentation et la tension de commande.
+hints:
+  - Posez les sondes sur deux bornes dans le laboratoire, choisissez V~, puis lisez l'affichage.
+  - L'alimentation est côté ligne du sectionneur (L1 à L2). La commande est entre le fil 1 (TB1) et X2 (TB0).
+objectives:
+  - { type: measured, points: ['DS:L1', 'DS:L2'], mode: VAC, min: 570, max: 630, label: Tension entre L1 et L2 (600 V nominal) }
+  - { type: measured, points: ['DS:L1', 'PE:G'], mode: VAC, min: 330, max: 360, label: Tension entre une phase et la terre (≈ 347 V) }
+  - { type: measured, points: ['TB1:T', 'TB0:T'], mode: VAC, min: 110, max: 125, label: Tension de commande entre le fil 1 et X2 (≈ 120 V) }
+  - { type: no_violation, code: ohms_on_live, label: Aucune mesure d'ohms sur un circuit sous tension }
