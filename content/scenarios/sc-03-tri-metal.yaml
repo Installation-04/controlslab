@@ -1,0 +1,68 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: sc-03-tri-metal
+number: SC-0003
+title: Trier les boîtes métalliques
+complaint: « Les boîtes en métal et en plastique arrivent mélangées. Je veux que les boîtes métalliques soient poussées dans le bac latéral et que le plastique continue jusqu'au bout. »
+context: >-
+  Un détecteur inductif (%IX1.0) reconnaît les boîtes métalliques, en amont. Plus loin, un détecteur photoélectrique (%IX1.1)
+  indique qu'une boîte est devant le vérin pousseur. Le vérin : sortir %QX1.0, fin de course rentré %IX1.2, sorti %IX1.3.
+  Il faut mémoriser « boîte métallique détectée » jusqu'à ce qu'elle arrive devant le vérin.
+hints:
+  - "Le détecteur inductif ne voit la boîte que quelques instants : utilisez R_TRIG pour mémoriser le passage dans une variable (« Metal »)."
+  - Faites sortir le vérin quand Metal ET que le photoélectrique voit la boîte devant le vérin.
+  - "Rentrez le vérin quand le fin de course « sorti » (%IX1.3) confirme la fin de course, puis effacez Metal. Ne vous fiez pas au photoélectrique : il perd la boîte avant la fin de la poussée."
+editable: true
+entities:
+  - { id: PN1, type: panel, x: -2.6, z: -1.9, rot: 0, params: { machine: motor-starter-plc }, locked: true, name: Panneau de commande }
+  - { id: CV1, type: conveyor, x: 0, z: 0, rot: 0, params: { length: 4, drive: panel }, locked: true }
+  - { id: SP1, type: spawner, x: -1.7, z: 0, rot: 0, params: { intervalMs: 4000, max: 6, pattern: 'plastic,metal' }, locked: true }
+  - { id: PX1, type: prox, x: -0.8, z: -0.32, rot: 90, params: { range: 0.2 }, io: { detect: '%IX1.0' }, name: Détecteur inductif }
+  - { id: PH1, type: photo, x: 0.6, z: -0.62, rot: 90, params: { range: 0.8 }, io: { detect: '%IX1.1' }, name: Photoélectrique du vérin }
+  - { id: PU1, type: pusher, x: 0.6, z: -0.5, rot: 90, params: { stroke: 1, strokeMs: 500 }, io: { extend: '%QX1.0', retracted: '%IX1.2', extended: '%IX1.3' } }
+  - { id: BN1, type: bin, x: 2.15, z: 0, rot: 0, params: { size: 0.7 }, locked: true, name: Bac plastique }
+  - { id: BN2, type: bin, x: 0.8, z: 1.1, rot: 0, params: { size: 1 }, locked: true, name: Bac métal }
+plc:
+  starter: |
+    PROGRAM Main
+    VAR
+        Marche       AT %IX0.0 : BOOL;
+        Arret        AT %IX0.1 : BOOL;
+        Surcharge    AT %IX0.2 : BOOL;
+        AU_OK        AT %IX0.3 : BOOL;
+        RetourM      AT %IX0.4 : BOOL;
+        BobineM      AT %QX0.0 : BOOL;
+        VoyantMarche AT %QX0.1 : BOOL;
+        DetMetal     AT %IX1.0 : BOOL;   (* inductif : boîte métallique *)
+        DevantVerin  AT %IX1.1 : BOOL;   (* photoélectrique devant le vérin *)
+        VerinRentre  AT %IX1.2 : BOOL;
+        VerinSorti   AT %IX1.3 : BOOL;
+        Sortir       AT %QX1.0 : BOOL;   (* sortie du vérin *)
+    END_VAR
+
+    (* À compléter : démarreur + logique de tri *)
+
+    END_PROGRAM
+  tests:
+    - id: t-tri
+      title: Les boîtes métalliques vont au bac latéral, le plastique au bout
+      steps:
+        - { panelPress: PB_START }
+        - { run: 300 }
+        - { panelRelease: PB_START }
+        - { run: 45000 }
+        - { expectBin: { bin: BN2, kind: metal, min: 3, max: 3 }, msg: Les 3 boîtes métalliques doivent finir dans le bac métal }
+        - { expectBin: { bin: BN2, kind: plastic, max: 0 }, msg: Aucune boîte en plastique ne doit être poussée dans le bac métal }
+        - { expectBin: { bin: BN1, kind: plastic, min: 3 }, msg: Les 3 boîtes en plastique doivent arriver au bout du convoyeur }
+        - { expectBin: { bin: BN1, kind: metal, max: 0 }, msg: Une boîte métallique a raté le vérin }
+        - { expectLost: { max: 0 }, msg: Une boîte est tombée au sol }
+    - id: t-repos
+      title: Le vérin reste rentré sans boîte métallique
+      steps:
+        - { panelPress: PB_START }
+        - { run: 300 }
+        - { panelRelease: PB_START }
+        - { run: 3000 }
+        - { expectInput: { address: '%IX1.2', equals: true }, msg: Le vérin ne doit pas sortir tant qu'aucune boîte métallique n'a été détectée }
+objectives:
+  - { type: plc_test, test: t-tri, label: Tri complet métal / plastique }
+  - { type: plc_test, test: t-repos, label: Vérin au repos par défaut }

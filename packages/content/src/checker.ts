@@ -4,8 +4,9 @@
  * machine's event log + state, so results are reproducible.
  */
 import { Machine, type MachineDef, type SimEvent } from '@controlslab/sim';
+import { CellRunner, type EntityDef } from '@controlslab/factory';
 import { CoSim } from './cosim';
-import type { Checkpoint, Localized, Objective, PlcTest, WorkOrder } from './schema';
+import type { Checkpoint, Localized, Objective, PlcTest, Scenario, WorkOrder } from './schema';
 
 export interface ObjectiveResult {
   label: Localized;
@@ -208,4 +209,23 @@ export function pickFault(cp: Checkpoint, seed: number): string {
   t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
   const r = ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   return cp.pool[Math.floor(r * cp.pool.length)]!;
+}
+
+// ---------- Scenario (3D cell) checking ----------
+export interface ScenarioResult extends CheckResult {
+  tests: Array<{ id: string; pass: boolean; failures: string[]; loadError?: string }>;
+}
+
+/** Run every scripted test of a scenario against the learner's program, each on a fresh cell. */
+export function checkScenario(scenario: Scenario, entities: EntityDef[], machines: Record<string, MachineDef>, source: string): ScenarioResult {
+  const tests = scenario.plc.tests.map((t) => {
+    const runner = new CellRunner({ entities: structuredClone(entities), machines, faults: scenario.faults }, source);
+    const r = runner.playScript(t.steps as never);
+    return { id: t.id, ...r };
+  });
+  const objectives: ObjectiveResult[] = scenario.objectives.map((o) => {
+    const t = tests.find((x) => x.id === o.test);
+    return { label: o.label, pass: !!t?.pass, detail: t ? (t.loadError ?? t.failures.join(' | ')) || undefined : `test inconnu: ${o.test}` };
+  });
+  return { objectives, passed: objectives.every((o) => o.pass), tests };
 }

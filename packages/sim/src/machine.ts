@@ -43,6 +43,7 @@ export class Machine {
   private plcOutputs: Record<string, boolean> = {};
   private sol!: Solution;
   private readonly injected = new Set<string>();
+  private lastSig = '';
 
   constructor(def: MachineDef, library: Record<string, ComponentType> = LIBRARY) {
     this.def = def;
@@ -121,7 +122,13 @@ export class Machine {
   private settle(dt: number) {
     let changed = true;
     for (let i = 0; i < 8 && changed; i++) {
-      this.sol = this.build('ac').solve();
+      // The network only depends on component states, faults and PLC outputs:
+      // when none changed since the last solve (steady state), reuse the solution.
+      const sig = this.signature();
+      if (sig !== this.lastSig || !this.sol) {
+        this.sol = this.build('ac').solve();
+        this.lastSig = sig;
+      }
       changed = false;
       for (const c of this.comps.values()) {
         if (c.type.switching?.({ ...this.ctx(c), sol: this.sol, dt, emit: this.emit })) changed = true;
@@ -132,12 +139,28 @@ export class Machine {
     }
   }
 
+  /** Everything that influences the circuit equations (rounded so slow ramps still re-solve). */
+  private signature(): string {
+    let s = '';
+    for (const c of this.comps.values()) {
+      for (const [k, v] of Object.entries(c.state)) {
+        if (k === 'heat' || k === 'lit' || k === 'state' || k === 'locks') continue;
+        s += typeof v === 'number' ? `${k}${Math.round(v * 1000)}` : `${k}${String(v)}`;
+      }
+      if (c.faults.size) s += [...c.faults].join('+');
+      s += '|';
+    }
+    for (const [k, v] of Object.entries(this.plcOutputs)) if (v) s += k;
+    return s + [...this.wireFaults].join(',');
+  }
+
   /** Advance simulated time. */
   tick(dtMs: number) {
     this.time += dtMs;
+    const before = this.events.length;
     this.settle(dtMs);
     // Time-based devices (overload trip, fuse blow) may have changed the network.
-    this.settle(0);
+    if (this.events.length !== before) this.settle(0);
   }
 
   /** Run for a duration in fixed steps (tests / fast-forward). */

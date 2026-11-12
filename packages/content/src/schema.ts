@@ -159,3 +159,54 @@ export const Checkpoint = z.object({
 export type Checkpoint = z.infer<typeof Checkpoint>;
 
 export const CHECKPOINT_NO_HINTS = true;
+
+// ---------- Scenarios (3D cell) ----------
+const Rot = z.union([z.literal(0), z.literal(90), z.literal(180), z.literal(270)]);
+const ParamValue = z.union([z.number(), z.string(), z.boolean()]);
+export const EntityType = z.enum(['conveyor', 'spawner', 'photo', 'prox', 'pusher', 'button', 'light', 'stacklight', 'bin', 'panel']);
+
+export const EntitySchema = z.object({
+  id: Id,
+  type: EntityType,
+  x: z.number(),
+  z: z.number(),
+  rot: Rot.default(0),
+  params: z.record(ParamValue).optional(),
+  io: z.record(z.string()).optional(),
+  name: z.string().optional(),
+  locked: z.boolean().optional(),
+});
+
+const ItemKindZ = z.enum(['plastic', 'metal', 'cardboard']);
+export const CellStepSchema = z.union([
+  z.object({ run: z.number().positive() }),
+  z.object({ press: z.string() }),
+  z.object({ release: z.string() }),
+  z.object({ panelPress: z.string() }),
+  z.object({ panelRelease: z.string() }),
+  z.object({ inject: z.string() }),
+  z.object({ expectBin: z.object({ bin: z.string(), kind: ItemKindZ.optional(), min: z.number().optional(), max: z.number().optional() }), msg: z.string().optional() }),
+  z.object({ expectInput: z.object({ address: z.string(), equals: z.boolean() }), msg: z.string().optional() }),
+  z.object({ expectOutput: z.object({ address: z.string(), equals: z.boolean() }), msg: z.string().optional() }),
+  z.object({ expectBelt: z.object({ id: z.string(), running: z.boolean() }), msg: z.string().optional() }),
+  z.object({ expectLost: z.object({ max: z.number() }), msg: z.string().optional() }),
+]);
+
+export const CellTest = z.object({ id: Id, title: Localized, steps: z.array(CellStepSchema).min(1) });
+export type CellTest = z.infer<typeof CellTest>;
+
+export const Scenario = z.object({
+  id: Id,
+  number: z.string(),
+  title: Localized,
+  complaint: Localized,
+  context: Localized.optional(),
+  entities: z.array(EntitySchema).min(1),
+  faults: z.array(z.string()).default([]),
+  hints: z.array(Localized).default([]),
+  /** Learner may add/move/delete devices (non-locked ones). */
+  editable: z.boolean().default(true),
+  plc: z.object({ starter: z.string(), tests: z.array(CellTest).min(1) }),
+  objectives: z.array(z.object({ type: z.literal('plc_test'), test: Id, label: Localized })).min(1),
+});
+export type Scenario = z.infer<typeof Scenario>;

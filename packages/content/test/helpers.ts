@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { Machine, type MachineDef } from '@controlslab/sim';
-import { parseContent, type Checkpoint, type Lesson, type WorkOrder } from '../src';
+import { parseContent, type Checkpoint, type Lesson, type Scenario, type WorkOrder } from '../src';
 
 const root = fileURLToPath(new URL('../../../content/', import.meta.url));
 
@@ -18,6 +18,9 @@ function loadDir<T>(dir: string, kind: string): Array<{ file: string; data: T }>
 export const lessons = () => loadDir<Lesson>('lessons', 'lesson');
 export const workorders = () => loadDir<WorkOrder>('workorders', 'workorder');
 export const checkpoints = () => loadDir<Checkpoint>('checkpoints', 'checkpoint');
+export const scenarios = () => loadDir<Scenario>('scenarios', 'scenario');
+export const scenarioById = (id: string) => scenarios().find((x) => x.data.id === id)!.data;
+export const machineMap = () => Object.fromEntries(machineDefs().map((m) => [m.data.id, m.data]));
 export const machineDefs = () => loadDir<MachineDef>('machines', 'machine');
 
 export const defById = (id: string): MachineDef => {

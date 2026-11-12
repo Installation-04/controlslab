@@ -3,6 +3,7 @@
   "references": [
     { "path": "packages/plc-engine" },
     { "path": "packages/sim" },
+    { "path": "packages/factory" },
     { "path": "packages/content" }
   ]
 }

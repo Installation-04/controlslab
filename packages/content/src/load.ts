@@ -2,14 +2,14 @@
 import type { MachineDef } from '@controlslab/sim';
 import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
-import { Checkpoint, Lesson, WorkOrder } from './schema';
+import { Checkpoint, Lesson, Scenario, WorkOrder } from './schema';
 
-export type ContentKind = 'lesson' | 'workorder' | 'checkpoint' | 'machine';
+export type ContentKind = 'lesson' | 'workorder' | 'checkpoint' | 'machine' | 'scenario';
 
 export interface ParsedContent {
   kind: ContentKind;
   id: string;
-  data: Lesson | WorkOrder | Checkpoint | MachineDef;
+  data: Lesson | WorkOrder | Checkpoint | MachineDef | Scenario;
 }
 
 const MachineShape = z
@@ -40,6 +40,7 @@ export function parseContent(yamlText: string): ParsedContent {
   const o = raw as Record<string, unknown>;
   const [kind, schema]: [ContentKind, z.ZodTypeAny] =
     'blocks' in o ? ['lesson', Lesson]
+    : 'entities' in o && 'plc' in o ? ['scenario', Scenario]
     : 'objectives' in o && 'machine' in o ? ['workorder', WorkOrder]
     : 'pool' in o ? ['checkpoint', Checkpoint]
     : 'components' in o ? ['machine', MachineShape]
@@ -49,7 +50,13 @@ export function parseContent(yamlText: string): ParsedContent {
   const r = schema.safeParse(raw);
   if (!r.success) {
     const issue = r.error.issues[0]!;
-    throw new ContentError(`${kind}: ${issue.path.join('.') || '(racine)'} — ${issue.message}`);
+    // A French " : " inside an unquoted YAML string silently becomes a mapping: say so.
+    let at: unknown = raw;
+    for (const k of issue.path) at = (at as Record<string | number, unknown> | undefined)?.[k];
+    const trap = at && typeof at === 'object' && !Array.isArray(at) && !('fr' in at)
+      ? ' (astuce : une chaîne YAML qui contient « : » doit être entre guillemets ou en bloc « >- »)'
+      : '';
+    throw new ContentError(`${kind}: ${issue.path.join('.') || '(racine)'} — ${issue.message}${trap}`);
   }
   const data = r.data as ParsedContent['data'];
   return { kind, id: (data as { id: string }).id, data };
