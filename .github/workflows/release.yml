@@ -1,0 +1,50 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Release on every push to main: if the version in package.json has no tag yet,
+# create tag v<version> and a GitHub Release with the built site attached.
+# To publish a new release: bump "version" in package.json in the beta -> main PR.
+name: Release
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Read version
+        id: v
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Does the tag already exist?
+        id: tag
+        run: |
+          if git rev-parse -q --verify "refs/tags/v${{ steps.v.outputs.version }}" >/dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.tag.outputs.exists == 'false'
+        run: |
+          npm ci
+          npm test
+          npm run build
+          tar -C apps/web/dist -czf controlslab-web-v${{ steps.v.outputs.version }}.tar.gz .
+      - if: steps.tag.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ steps.v.outputs.version }}" \
+            "controlslab-web-v${{ steps.v.outputs.version }}.tar.gz" \
+            --target "${{ github.sha }}" \
+            --title "ControlsLab v${{ steps.v.outputs.version }}" \
+            --generate-notes

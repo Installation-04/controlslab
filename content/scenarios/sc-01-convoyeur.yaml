@@ -1,0 +1,75 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: sc-01-convoyeur
+number: SC-0001
+title: Démarrer et arrêter un convoyeur
+complaint: « Le convoyeur de la ligne d'emballage est installé et câblé, mais il n'a pas de programme. Je veux démarrer et arrêter avec les boutons du panneau. »
+context: >-
+  Le convoyeur est entraîné par le moteur du panneau (contacteur M). Les boîtes arrivent d'un distributeur et tombent dans un bac.
+  Réalisez l'auto-maintien de la bobine M dans l'automate. Ouvrez le panneau pour appuyer sur MARCHE / ARRÊT.
+hints:
+  - "C'est le même démarreur que la leçon 5 : la sortie %QX0.0 commande la bobine du contacteur M."
+  - Le convoyeur n'avance que si le moteur tourne vraiment — le contacteur doit être collé.
+  - Après ARRÊT, le moteur tourne encore un peu par inertie.
+editable: true
+entities:
+  - { id: PN1, type: panel, x: -1.6, z: -1.7, rot: 0, params: { machine: motor-starter-plc }, locked: true, name: Panneau de commande }
+  - { id: CV1, type: conveyor, x: 0, z: 0, rot: 0, params: { length: 3, drive: panel }, locked: true }
+  - { id: SP1, type: spawner, x: -1.2, z: 0, rot: 0, params: { intervalMs: 3000, max: 6, pattern: 'plastic,cardboard' }, locked: true }
+  - { id: BN1, type: bin, x: 1.65, z: 0, rot: 0, params: { size: 0.7 }, locked: true }
+plc:
+  starter: |
+    PROGRAM Main
+    VAR
+        Marche       AT %IX0.0 : BOOL;   (* MARCHE, NO *)
+        Arret        AT %IX0.1 : BOOL;   (* ARRÊT, NF : TRUE quand non appuyé *)
+        Surcharge    AT %IX0.2 : BOOL;   (* Relais de surcharge déclenché *)
+        AU_OK        AT %IX0.3 : BOOL;   (* Arrêt d'urgence relâché *)
+        RetourM      AT %IX0.4 : BOOL;   (* Contact auxiliaire M 13-14 *)
+        BobineM      AT %QX0.0 : BOOL;   (* Bobine du contacteur M → moteur du convoyeur *)
+        VoyantMarche AT %QX0.1 : BOOL;   (* Voyant MARCHE du panneau *)
+    END_VAR
+
+    (* À compléter *)
+
+    END_PROGRAM
+  tests:
+    - id: t-marche
+      title: Le convoyeur démarre, reste en marche et livre les boîtes
+      steps:
+        - { expectBelt: { id: CV1, running: false }, msg: Le convoyeur ne doit pas tourner avant d'appuyer sur MARCHE }
+        - { panelPress: PB_START }
+        - { run: 300 }
+        - { panelRelease: PB_START }
+        - { run: 4000 }
+        - { expectBelt: { id: CV1, running: true }, msg: Le convoyeur doit tourner après MARCHE et rester en marche une fois le bouton relâché (auto-maintien) }
+        - { run: 26000 }
+        - { expectBin: { bin: BN1, min: 5 }, msg: Au moins 5 boîtes devraient avoir atteint le bac après 30 secondes de marche }
+        - { expectLost: { max: 0 } }
+    - id: t-arret
+      title: ARRÊT immobilise le convoyeur
+      steps:
+        - { panelPress: PB_START }
+        - { run: 300 }
+        - { panelRelease: PB_START }
+        - { run: 3000 }
+        - { panelPress: PB_STOP }
+        - { run: 300 }
+        - { panelRelease: PB_STOP }
+        - { run: 6000 }
+        - { expectBelt: { id: CV1, running: false }, msg: Le convoyeur doit s'arrêter après ARRÊT (laissez le moteur finir sa course) }
+        - { expectOutput: { address: '%QX0.0', equals: false } }
+    - id: t-urgence
+      title: L'arrêt d'urgence coupe la commande
+      steps:
+        - { panelPress: PB_START }
+        - { run: 300 }
+        - { panelRelease: PB_START }
+        - { run: 3000 }
+        - { panelPress: PB_ES }
+        - { run: 6000 }
+        - { expectBelt: { id: CV1, running: false } }
+        - { expectOutput: { address: '%QX0.0', equals: false }, msg: Le programme doit aussi retomber quand l'arrêt d'urgence est enfoncé }
+objectives:
+  - { type: plc_test, test: t-marche, label: Démarrage, auto-maintien et livraison des boîtes }
+  - { type: plc_test, test: t-arret, label: Arrêt normal }
+  - { type: plc_test, test: t-urgence, label: Arrêt d'urgence respecté }

@@ -1,0 +1,47 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+name: CI
+on:
+  pull_request:
+    branches: [dev, beta, main]
+  push:
+    branches: [dev, beta]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    # Pinned: Playwright's browser install only supports specific Ubuntu releases.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run coverage
+      - run: npm run build
+      - name: End-to-end smoke test (Chromium)
+        run: |
+          npm i -g playwright@1.50.0
+          npx playwright install --with-deps chromium
+          (cd apps/web && npx vite preview --port 4173 --host 127.0.0.1 &)
+          sleep 3
+          node apps/web/e2e/smoke.mjs
+          node apps/web/e2e/cell.mjs
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -f docker/Dockerfile -t controlslab:ci .
+      - name: Run container and probe /healthz
+        run: |
+          docker run -d --name cl -p 12000:8080 --read-only --tmpfs /tmp controlslab:ci
+          for i in $(seq 1 20); do curl -fsS http://127.0.0.1:12000/healthz && break || sleep 1; done
+          curl -fsS http://127.0.0.1:12000/ | grep -q "ControlsLab"
+          docker rm -f cl

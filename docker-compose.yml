@@ -1,0 +1,54 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# ControlsLab — a single container serving the static web app.
+# Everything the learner does (progress, programs) is stored in *their* browser,
+# so there is no database, no volume and no secret to manage.
+#
+#   cp .env.example .env     # adjust WEB_PORT / TZ if needed
+#   docker compose up -d --build
+#   -> http://<host>:12000
+#
+# Compatible with Docker Compose v2 and with GUI stack managers (e.g. Arcane, Portainer):
+# point them at this file and at the .env next to it.
+
+name: controlslab
+
+services:
+  # nginx (unprivileged) serving the built frontend. Built from docker/Dockerfile.
+  web:
+    container_name: controlslab-web
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: controlslab:local
+    restart: unless-stopped
+    # Host port → container port 8080. Default 12000 (reserved range 12000-12009).
+    ports:
+      - "${WEB_PORT:-12000}:8080"
+    environment:
+      TZ: ${TZ:-America/Toronto}
+    # Hardening: the site is static, so the filesystem can be read-only.
+    # nginx only needs a few writable scratch directories, provided as tmpfs.
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    # The healthcheck itself is defined in the Dockerfile (GET /healthz);
+    # it is repeated here so it is visible and tunable from one place.
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - controlslab_network
+
+# Dedicated bridge network, so the app is isolated from other stacks on the host.
+networks:
+  controlslab_network:
+    name: controlslab_network
+    driver: bridge

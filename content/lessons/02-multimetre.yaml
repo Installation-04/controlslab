@@ -1,0 +1,84 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: multimetre
+order: 2
+title:
+  fr: Utiliser le multimètre en toute sécurité
+  en: Using the multimeter safely
+summary: Choisir la bonne fonction, mesurer une tension, tester une continuité — et éviter les pièges de l'ohmmètre.
+minutes: 35
+prerequisites: [loi-ohm]
+objectives:
+  - Choisir la fonction et la cote de catégorie (CAT) adaptées au circuit.
+  - Mesurer une tension alternative en travers d'un composant et interpréter la valeur.
+  - Mesurer une résistance ou une continuité seulement hors tension, en reconnaissant les chemins parasites.
+blocks:
+  - type: callout
+    kind: safety
+    title: Avant de toucher au multimètre
+    md: |
+      1. **Cote CAT** : un panneau ou une cellule 600 V exige un appareil **CAT III 600 V** (ou plus), avec cordons de même cote.
+      2. **Inspecter** l'appareil et les cordons (isolant fendu, pointes dénudées) : au rebut au moindre doute.
+      3. Porter l'**ÉPI** exigé par l'analyse de risque d'arc (visière, gants isolants, vêtements ignifuges) selon l'étiquette et la procédure de l'employeur.
+      4. Une main dans le dos quand c'est possible, jamais de bijoux métalliques.
+  - type: text
+    md: |
+      ## Les fonctions du multimètre virtuel
+
+      | Fonction | Usage | Se mesure |
+      |---|---|---|
+      | **V~** | Tension alternative | Sous tension, en parallèle |
+      | **V⎓** | Tension continue | Sous tension, en parallèle (ici 0 : le circuit est alternatif) |
+      | **Ω** | Résistance | **Hors tension seulement** |
+      | **Continuité** | Bip sous ~50 Ω | **Hors tension seulement** |
+
+      Le voltmètre a une **très haute impédance** : il se branche *en parallèle* sans perturber le circuit. L'ohmmètre,
+      lui, injecte son propre petit courant : toute tension présente fausse la mesure — et peut endommager l'appareil.
+  - type: schematic
+    machine: motor-starter-3w
+    caption: Cliquez sur deux bornes dans le laboratoire pour y poser les sondes.
+  - type: callout
+    kind: warning
+    title: L'ohmmètre sur un circuit sous tension
+    md: Dans ce simulateur, mesurer des ohms sur un circuit sous tension affiche « ---- » et est **consigné comme une faute de sécurité** (et pénalisé au point de contrôle). Dans la vraie vie, vous pouvez griller le fusible de l'appareil ou pire.
+  - type: text
+    md: |
+      ## Chemins parasites (sneak paths)
+
+      Mesurez la résistance de la bobine M **sans la débrancher** : vous lirez environ 75 Ω au lieu de 110 Ω. Pourquoi? Parce que
+      le multimètre « voit » aussi le chemin qui passe par l'enroulement secondaire du transformateur de commande, le voyant, etc. —
+      tout ce qui est câblé en parallèle.
+
+      **Pour mesurer un composant seul : débranchez un de ses fils** (hors tension, sous cadenas), puis mesurez.
+
+      ## Lire une tension : trois habitudes
+
+      1. **Vérifier l'appareil** sur une source connue (« vivant ») avant de croire un « 0 V ».
+      2. **Mesurer en travers** du composant, pas seulement par rapport à la terre.
+      3. **Anticiper** la valeur (leçon 1) puis comparer.
+  - type: quiz
+    id: q-meter-1
+    question: Vous lisez 0 V entre le fil 4 et X2 alors que la commande devrait être alimentée. Quelle est la première chose à faire?
+    choices:
+      - Conclure que le circuit est hors tension et ouvrir le boîtier
+      - Remplacer le fusible
+      - Vérifier le multimètre sur une source connue, puis refaire la mesure
+      - Passer en mode ohms
+    answer: 2
+    explain: Un « 0 V » n'est fiable que si l'instrument est fiable. Vérifiez-le sur une source connue (vivant), mesurez, puis revérifiez (vivant-mort-vivant).
+  - type: quiz
+    id: q-meter-2
+    question: Quelle lecture attendez-vous aux bornes d'un fusible en bon état dans un circuit sous tension?
+    choices:
+      - La tension de la source
+      - Environ 0 V
+      - La moitié de la tension de la source
+      - Un affichage « OL »
+    answer: 1
+    explain: >-
+      Un fusible sain a une résistance de quelques milliohms : presque aucune chute de tension. Si vous lisez la pleine tension en travers, il est ouvert (grillé).
+  - type: practice
+    workorder: wo-002-mesures
+    label: Faire les mesures de base sur le démarreur
+references:
+  - Fiche technique de votre multimètre (catégorie de surtension, cote en tension).
+  - CSA Z462 — Sécurité électrique en milieu de travail.
