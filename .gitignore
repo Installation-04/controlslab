@@ -6,3 +6,5 @@ coverage/
 .DS_Store
 playwright-report/
 test-results/
+dist-connector/
+apps/web/public/downloads/

@@ -6,9 +6,11 @@ import { checkpoints, defById, lessons, machineDefs, workorders } from './helper
 const machines = () => Object.fromEntries(machineDefs().map((m) => [m.data.id, new Machine(structuredClone(m.data))]));
 
 describe('bundled content is valid and consistent', () => {
-  it('has the 5 MVP lessons in order', () => {
-    expect(lessons().map((l) => l.data.order).sort()).toEqual([1, 2, 3, 4, 5]);
-    expect(new Set(lessons().map((l) => l.data.id)).size).toBe(5);
+  it('has consecutive lesson numbers and unique ids', () => {
+    const n = lessons().length;
+    expect(lessons().map((l) => l.data.order).sort((a, b) => a - b)).toEqual(Array.from({ length: n }, (_, i) => i + 1));
+    expect(new Set(lessons().map((l) => l.data.id)).size).toBe(n);
+    expect(n).toBeGreaterThanOrEqual(8);
   });
 
   it('lessons: prerequisites, quiz answers, practice and schematic references resolve', () => {

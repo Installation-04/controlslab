@@ -1,0 +1,238 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Banc d’essai : circuit d’éclairage 120 V
+# Machine définie comme données : composants (types de la bibliothèque du
+# simulateur), fils (numéros de fil), cadenassage et catalogue de défauts.
+id: bench-lighting
+version: 1
+title: {fr: "Banc d’essai : circuit d’éclairage 120 V", en: "Test bench: 120 V lighting circuit"}
+description:
+  fr: "Circuit monophasé 120 V pour apprendre à mesurer : trois branches en parallèle (2 lampes de 60 W, 1 radiateur de 1 500 W) derrière un
+    fusible de 15 A. Idéal pour la loi d'Ohm, les tensions en série/parallèle et la pince ampèremétrique."
+  en: "Single-phase 120 V circuit for learning to measure: three parallel branches (two 60 W lamps, one 1,500 W heater) behind a 15 A fuse.
+    Ideal for Ohm’s law, series/parallel voltages and the clamp meter."
+mode: hardwired
+viewBox: [700, 520]
+components:
+  - id: SRC
+    type: source3
+    tag: Alim.
+    label: {fr: Alimentation 120/208 V (phase L1 + neutre), en: 120/208 V supply (L1 + neutral)}
+    params:
+      vLL: 208
+    parts:
+      main: {at: [60, 40]}
+  - id: DS
+    type: disconnect3
+    tag: SA
+    label:
+      fr: Sectionneur / disjoncteur principal (cadenassable)
+      en: Main disconnect (lockable)
+    parts:
+      main: {at: [60, 80]}
+  - id: PE
+    type: ground
+    tag: N/MALT
+    label: {fr: Neutre mis à la terre, en: Grounded neutral}
+    parts:
+      main: {at: [520, 420]}
+  - id: F1
+    type: fuse
+    tag: F1
+    params:
+      rating: 15
+    label: {fr: Fusible du circuit (15 A), en: Circuit fuse (15 A)}
+    parts:
+      main: {at: [110, 220]}
+  - id: JA
+    type: terminal
+    tag: A
+    parts:
+      main: {at: [220, 220]}
+  - id: SW1
+    type: pushbutton
+    tag: SW1
+    params:
+      contact: NO
+      kind: toggle
+      color: black
+    label: {fr: Interrupteur 1, en: Switch 1}
+    parts:
+      main: {at: [250, 220]}
+  - id: LT1
+    type: lamp
+    tag: LT1
+    params:
+      v: 120
+      w: 60
+      color: amber
+    label: {fr: Lampe 1 (60 W), en: Lamp 1 (60 W)}
+    parts:
+      main: {at: [370, 220]}
+  - id: JB1
+    type: terminal
+    parts:
+      main: {at: [340, 220]}
+  - id: JN1
+    type: terminal
+    tag: N
+    parts:
+      main: {at: [480, 220]}
+  - id: SW2
+    type: pushbutton
+    tag: SW2
+    params:
+      contact: NO
+      kind: toggle
+      color: black
+    label: {fr: Interrupteur 2, en: Switch 2}
+    parts:
+      main: {at: [250, 300]}
+  - id: LT2
+    type: lamp
+    tag: LT2
+    params:
+      v: 120
+      w: 60
+      color: amber
+    label: {fr: Lampe 2 (60 W), en: Lamp 2 (60 W)}
+    parts:
+      main: {at: [370, 300]}
+  - id: JB2
+    type: terminal
+    parts:
+      main: {at: [340, 300]}
+  - id: JN2
+    type: terminal
+    tag: N
+    parts:
+      main: {at: [480, 300]}
+  - id: SW3
+    type: pushbutton
+    tag: SW3
+    params:
+      contact: NO
+      kind: toggle
+      color: black
+    label: {fr: Interrupteur 3, en: Switch 3}
+    parts:
+      main: {at: [250, 380]}
+  - id: LT3
+    type: lamp
+    tag: LT3
+    params:
+      v: 120
+      w: 1500
+      color: amber
+    label: {fr: Radiateur (1500 W), en: Heater (1500 W)}
+    parts:
+      main: {at: [370, 380]}
+  - id: JB3
+    type: terminal
+    parts:
+      main: {at: [340, 380]}
+  - id: JN3
+    type: terminal
+    tag: N
+    parts:
+      main: {at: [480, 380]}
+wires:
+  - id: W1
+    label: L1
+    from: SRC:L1
+    to: DS:L1
+  - id: W2
+    label: L1A
+    from: DS:T1
+    to: F1:1
+    via: [[60, 220]]
+  - id: W3
+    label: A
+    from: F1:2
+    to: JA:T
+  - id: W4
+    label: A
+    from: JA:T
+    to: SW1:1
+  - id: W5
+    label: "1"
+    from: SW1:2
+    to: LT1:X1
+  - id: W6
+    label: N
+    from: LT1:X2
+    to: JN1:T
+  - id: W7
+    label: A
+    from: JA:T
+    to: SW2:1
+    via: [[220, 300]]
+    junctions: [[220, 300]]
+  - id: W8
+    label: "2"
+    from: SW2:2
+    to: LT2:X1
+  - id: W9
+    label: N
+    from: LT2:X2
+    to: JN2:T
+  - id: W10
+    label: A
+    from: JA:T
+    to: SW3:1
+    via: [[220, 380]]
+    junctions: [[220, 380]]
+  - id: W11
+    label: "3"
+    from: SW3:2
+    to: LT3:X1
+  - id: W12
+    label: N
+    from: LT3:X2
+    to: JN3:T
+  - id: W13
+    label: N
+    from: JN1:T
+    to: JN2:T
+  - id: W14
+    label: N
+    from: JN2:T
+    to: JN3:T
+  - id: W15
+    label: N
+    from: JN3:T
+    to: PE:G
+    via: [[520, 380]]
+loto:
+  isolators: [DS]
+  knownLive: [[DS:L1, PE:G]]
+  verifyPoints: [[DS:T1, PE:G], [F1:2, PE:G], [JA:T, PE:G]]
+  tryStart: SW1
+faults:
+  - id: lt1_burnt
+    target: LT1
+    kind: burnt
+    label: {fr: Ampoule de la lampe 1 brûlée, en: Lamp 1 bulb burnt out}
+  - id: lt2_burnt
+    target: LT2
+    kind: burnt
+    label: {fr: Ampoule de la lampe 2 brûlée, en: Lamp 2 bulb burnt out}
+  - id: f1_blown
+    target: F1
+    kind: blown
+    label: {fr: Fusible F1 grillé, en: Fuse F1 blown}
+  - id: sw1_open
+    target: SW1
+    kind: contact_open
+    label: {fr: Contact de l'interrupteur 1 ouvert, en: Switch 1 contact open}
+  - id: heater_burnt
+    target: LT3
+    kind: burnt
+    label: {fr: Élément du radiateur brûlé, en: Heater element burnt out}
+  - id: neutral_open
+    target: W9
+    kind: open
+    label:
+      fr: Neutre coupé entre la lampe 2 et le rail neutre
+      en: Neutral open between lamp 2 and the neutral rail
+notes:
+  - {text: {fr: 120 V — BANC D’ESSAI, en: 120 V — TEST BENCH}, at: [250, 30], size: 13}

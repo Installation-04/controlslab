@@ -1,0 +1,121 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: wo-011-inverseur-api
+number: BT-0011
+title: Programmer l'inverseur de marche (avec verrouillage)
+machine: reversing-plc
+priority: normal
+complaint: "« L'inverseur est câblé à l'automate mais il n'a pas de programme. Je veux AVANT, ARRIÈRE et ARRÊT, sans jamais fermer les deux contacteurs en même temps. »"
+context: >-
+  Le câblage garde un verrouillage matériel (contacts NF croisés, arrêt d'urgence et surcharge en série avec les bobines), mais le programme doit
+  AUSSI empêcher de commander les deux bobines : on ne compte jamais sur un seul niveau de protection. Pour changer de sens, il faut d'abord appuyer sur ARRÊT.
+  Si les deux boutons sont appuyés en même temps, AVANT est prioritaire. Les voyants suivent le retour des contacteurs (RetourKF / RetourKR).
+hints:
+  - "Chaque sens est un auto-maintien (comme BT-0005) avec en plus « ET PAS l'autre bobine »."
+  - "Ordre des échelons : si BobineKF est calculée avant BobineKR, KF gagne quand les deux boutons arrivent ensemble."
+  - "Les voyants : VoyantAvant := RetourKF; VoyantArriere := RetourKR."
+plc:
+  defaultLang: ld
+  starter: |
+    PROGRAM Main
+    VAR
+        Avant        AT %IX0.0 : BOOL;   (* MARCHE AVANT, NO *)
+        Arriere      AT %IX0.1 : BOOL;   (* MARCHE ARRIÈRE, NO *)
+        Arret        AT %IX0.2 : BOOL;   (* ARRÊT, NF : TRUE quand non appuyé *)
+        Surcharge    AT %IX0.3 : BOOL;   (* surcharge déclenchée (97-98) *)
+        RetourKF     AT %IX0.4 : BOOL;   (* contact auxiliaire KF 13-14 *)
+        RetourKR     AT %IX0.5 : BOOL;   (* contact auxiliaire KR 13-14 *)
+        AU_OK        AT %IX0.6 : BOOL;   (* arrêt d'urgence relâché *)
+        BobineKF     AT %QX0.0 : BOOL;   (* bobine du contacteur AVANT *)
+        BobineKR     AT %QX0.1 : BOOL;   (* bobine du contacteur ARRIÈRE *)
+        VoyantAvant  AT %QX0.2 : BOOL;
+        VoyantArriere AT %QX0.3 : BOOL;
+    END_VAR
+
+    (* À compléter : auto-maintien des deux sens + verrouillage logiciel *)
+
+    END_PROGRAM
+  ldStarter:
+    v: 1
+    name: Main
+    vars:
+      - { name: Avant, type: BOOL, address: '%IX0.0', comment: 'MARCHE AVANT (NO)' }
+      - { name: Arriere, type: BOOL, address: '%IX0.1', comment: 'MARCHE ARRIÈRE (NO)' }
+      - { name: Arret, type: BOOL, address: '%IX0.2', comment: 'ARRÊT (NF : vrai au repos)' }
+      - { name: Surcharge, type: BOOL, address: '%IX0.3', comment: 'surcharge déclenchée' }
+      - { name: RetourKF, type: BOOL, address: '%IX0.4', comment: 'retour contacteur AVANT' }
+      - { name: RetourKR, type: BOOL, address: '%IX0.5', comment: 'retour contacteur ARRIÈRE' }
+      - { name: AU_OK, type: BOOL, address: '%IX0.6', comment: "arrêt d'urgence relâché" }
+      - { name: BobineKF, type: BOOL, address: '%QX0.0', comment: 'bobine KF (avant)' }
+      - { name: BobineKR, type: BOOL, address: '%QX0.1', comment: 'bobine KR (arrière)' }
+      - { name: VoyantAvant, type: BOOL, address: '%QX0.2' }
+      - { name: VoyantArriere, type: BOOL, address: '%QX0.3' }
+    rungs: []
+  tests:
+    - id: t-avant
+      title: AVANT démarre le moteur dans le bon sens et le voyant suit
+      steps:
+        - { press: PB_FWD }
+        - { wait: 100 }
+        - { release: PB_FWD }
+        - { wait: 3000 }
+        - { expect: { component: KF, key: energized, equals: true }, msg: Le contacteur AVANT doit rester collé après le relâchement (auto-maintien) }
+        - { expect: { component: KR, key: energized, equals: false } }
+        - { expect: { component: MTR, key: dir, equals: fwd }, msg: Le moteur doit tourner en marche avant }
+        - { expect: { component: LT_F, key: lit, equals: true }, msg: Le voyant AVANT doit suivre le retour du contacteur KF }
+    - id: t-arriere
+      title: ARRIÈRE démarre le moteur en sens inverse
+      steps:
+        - { press: PB_REV }
+        - { wait: 100 }
+        - { release: PB_REV }
+        - { wait: 3000 }
+        - { expect: { component: KR, key: energized, equals: true }, msg: Le contacteur ARRIÈRE doit rester collé après le relâchement }
+        - { expect: { component: MTR, key: dir, equals: rev }, msg: Le moteur doit tourner en marche arrière }
+        - { expect: { component: LT_R, key: lit, equals: true }, msg: Le voyant ARRIÈRE doit suivre le retour du contacteur KR }
+    - id: t-verrouillage
+      title: Impossible d'inverser sans ARRÊT (verrouillage logiciel)
+      steps:
+        - { press: PB_FWD }
+        - { wait: 100 }
+        - { release: PB_FWD }
+        - { wait: 1500 }
+        - { press: PB_REV }
+        - { wait: 200 }
+        - { release: PB_REV }
+        - { wait: 500 }
+        - { expectOutput: '%QX0.1', equals: false, msg: "Le programme ne doit JAMAIS commander KR tant que KF est actif (verrouillage logiciel, en plus du câblage)" }
+        - { expect: { component: KF, key: energized, equals: true }, msg: Le sens AVANT doit continuer }
+    - id: t-simultane
+      title: Deux boutons en même temps, AVANT est prioritaire
+      steps:
+        - { press: PB_FWD }
+        - { press: PB_REV }
+        - { wait: 200 }
+        - { release: PB_FWD }
+        - { release: PB_REV }
+        - { wait: 800 }
+        - { expectOutput: '%QX0.0', equals: true, msg: AVANT doit gagner quand les deux boutons arrivent ensemble }
+        - { expectOutput: '%QX0.1', equals: false, msg: "Les deux bobines ne doivent jamais être commandées ensemble" }
+    - id: t-arret-inverse
+      title: ARRÊT puis changement de sens
+      steps:
+        - { press: PB_FWD }
+        - { wait: 100 }
+        - { release: PB_FWD }
+        - { wait: 1500 }
+        - { press: PB_STOP }
+        - { wait: 100 }
+        - { release: PB_STOP }
+        - { wait: 400 }
+        - { expect: { component: KF, key: energized, equals: false }, msg: ARRÊT doit couper la bobine AVANT }
+        - { press: PB_REV }
+        - { wait: 100 }
+        - { release: PB_REV }
+        - { wait: 600 }
+        - { expect: { component: KR, key: energized, equals: true }, msg: Après ARRÊT, ARRIÈRE doit pouvoir démarrer }
+objectives:
+  - { type: plc_test, test: t-avant, label: Marche avant, auto-maintien et voyant }
+  - { type: plc_test, test: t-arriere, label: Marche arrière, auto-maintien et voyant }
+  - { type: plc_test, test: t-verrouillage, label: Verrouillage logiciel entre les deux sens }
+  - { type: plc_test, test: t-simultane, label: Priorité à AVANT si appuis simultanés }
+  - { type: plc_test, test: t-arret-inverse, label: ARRÊT puis inversion }

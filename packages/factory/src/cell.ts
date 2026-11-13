@@ -35,6 +35,11 @@ export class CellCore {
     for (const f of opts.faults ?? []) this.machine?.injectFault(f);
   }
 
+  /** Rotation sense of the motor: +1 forward, −1 reverse, 0 stopped (phase sequence of the panel circuit). */
+  get motorDir(): number {
+    return this.machine && this.motorId ? (this.machine.state<{ rot?: number }>(this.motorId).rot ?? 1) || 1 : 1;
+  }
+
   /** Current motor speed 0..1 (0 when no panel). */
   get motorSpeed(): number {
     return this.machine && this.motorId ? this.machine.state<{ speed: number }>(this.motorId).speed : 0;
@@ -46,7 +51,7 @@ export class CellCore {
     this.machine?.tick(dtMs);
     for (const e of this.factory.entities) {
       if (e.type === 'conveyor' && resolveParams(e).drive === 'panel') {
-        this.factory.setExternalDrive(e.id, this.motorSpeed > 0.05 ? this.motorSpeed : 0);
+        this.factory.setExternalDrive(e.id, this.motorSpeed > 0.05 ? this.motorSpeed * this.motorDir : 0);
       }
     }
     this.factory.step(dtMs, plcOutputs);

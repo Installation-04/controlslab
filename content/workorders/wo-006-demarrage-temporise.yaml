@@ -1,0 +1,86 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: wo-006-demarrage-temporise
+number: BT-0006
+title: Démarrage temporisé avec avertissement
+machine: motor-starter-plc
+priority: normal
+complaint: "« Pour la sécurité des opérateurs, je veux que le voyant s'allume 3 secondes AVANT que le moteur démarre. Si on appuie sur ARRÊT pendant ce délai, rien ne doit partir. »"
+context: >-
+  Même panneau que le bon BT-0005. Quand on appuie sur MARCHE, le voyant MARCHE (%QX0.1) s'allume tout de suite, puis le contacteur (%QX0.0)
+  colle 3 secondes plus tard. Utilisez une mémoire interne pour la demande de démarrage et un temporisateur TON. Ce bon se fait aussi bien en Ladder qu'en ST.
+hints:
+  - "La demande de démarrage est un auto-maintien sur une variable interne (par exemple « Demande »), pas sur la bobine."
+  - "Un temporisateur TON alimenté par la demande donne T1.Q après 3 secondes; la bobine M suit T1.Q."
+  - "Le voyant brille pendant la temporisation (demande présente, T1.Q pas encore) et ensuite tant que le contacteur est collé."
+plc:
+  defaultLang: ld
+  starter: |
+    PROGRAM Main
+    VAR
+        Marche       AT %IX0.0 : BOOL;   (* MARCHE, NO *)
+        Arret        AT %IX0.1 : BOOL;   (* ARRÊT, NF : TRUE quand non appuyé *)
+        Surcharge    AT %IX0.2 : BOOL;   (* Relais de surcharge déclenché *)
+        AU_OK        AT %IX0.3 : BOOL;   (* Arrêt d'urgence relâché *)
+        RetourM      AT %IX0.4 : BOOL;   (* Contact auxiliaire M 13-14 *)
+        BobineM      AT %QX0.0 : BOOL;   (* Bobine du contacteur M *)
+        VoyantMarche AT %QX0.1 : BOOL;   (* Voyant MARCHE *)
+        Demande      : BOOL;             (* demande de démarrage (mémoire) *)
+        T1           : TON;
+    END_VAR
+
+    (* À compléter *)
+
+    END_PROGRAM
+  ldStarter:
+    v: 1
+    name: Main
+    vars:
+      - { name: Marche, type: BOOL, address: '%IX0.0', comment: 'MARCHE (NO)' }
+      - { name: Arret, type: BOOL, address: '%IX0.1', comment: 'ARRÊT (NF : vrai au repos)' }
+      - { name: Surcharge, type: BOOL, address: '%IX0.2', comment: 'surcharge déclenchée' }
+      - { name: AU_OK, type: BOOL, address: '%IX0.3', comment: "arrêt d'urgence relâché" }
+      - { name: RetourM, type: BOOL, address: '%IX0.4', comment: 'contact auxiliaire M' }
+      - { name: BobineM, type: BOOL, address: '%QX0.0', comment: 'bobine du contacteur' }
+      - { name: VoyantMarche, type: BOOL, address: '%QX0.1', comment: 'voyant MARCHE' }
+      - { name: Demande, type: BOOL, comment: 'demande de démarrage' }
+    rungs: []
+  tests:
+    - id: t-delai
+      title: Voyant tout de suite, moteur après 3 secondes
+      steps:
+        - { press: PB_START }
+        - { wait: 100 }
+        - { release: PB_START }
+        - { wait: 800 }
+        - { expect: { component: LT_RUN, key: lit, equals: true }, msg: "Le voyant doit s'allumer dès l'appui sur MARCHE (avertissement)" }
+        - { expect: { component: M, key: energized, equals: false }, msg: Le moteur ne doit pas démarrer avant la fin des 3 secondes }
+        - { wait: 3500 }
+        - { expect: { component: M, key: energized, equals: true }, msg: Le contacteur doit coller après 3 secondes et rester collé }
+    - id: t-annule
+      title: ARRÊT pendant le délai annule le démarrage
+      steps:
+        - { press: PB_START }
+        - { wait: 100 }
+        - { release: PB_START }
+        - { wait: 1000 }
+        - { press: PB_STOP }
+        - { wait: 100 }
+        - { release: PB_STOP }
+        - { wait: 4000 }
+        - { expect: { component: M, key: energized, equals: false }, msg: "ARRÊT pendant le délai doit annuler la demande : le moteur ne doit jamais démarrer" }
+    - id: t-arret
+      title: ARRÊT arrête le moteur en marche
+      steps:
+        - { press: PB_START }
+        - { wait: 100 }
+        - { release: PB_START }
+        - { wait: 4500 }
+        - { press: PB_STOP }
+        - { wait: 200 }
+        - { release: PB_STOP }
+        - { wait: 300 }
+        - { expect: { component: M, key: energized, equals: false }, msg: ARRÊT doit couper la bobine }
+objectives:
+  - { type: plc_test, test: t-delai, label: Avertissement puis démarrage après 3 secondes }
+  - { type: plc_test, test: t-annule, label: ARRÊT pendant le délai annule le démarrage }
+  - { type: plc_test, test: t-arret, label: ARRÊT en marche }

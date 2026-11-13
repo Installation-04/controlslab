@@ -1,0 +1,73 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: ladder
+order: 7
+title:
+  fr: Programmer en Ladder (schéma à contacts)
+  en: Programming in Ladder (LD)
+summary: >-
+  Lire et écrire des échelons : contacts, branches parallèles, bobines, temporisateurs — et voir le courant passer en direct.
+minutes: 40
+prerequisites: [premier-programme-st]
+objectives:
+  - Lire un échelon et dire dans quelles conditions la bobine est alimentée.
+  - Traduire un circuit de commande câblé en échelons (auto-maintien, verrouillage).
+  - Utiliser un temporisateur TON dans un échelon.
+blocks:
+  - type: text
+    md: |
+      Le **Ladder** (LD, « schéma à contacts ») ressemble aux schémas de relais qu'on lit déjà : deux **rails** verticaux, des **échelons** horizontaux.
+      Le courant « virtuel » passe de gauche à droite à travers des **contacts** et alimente une **bobine** à droite.
+
+      | Élément | Se comporte comme | Texte structuré |
+      |---|---|---|
+      | Contact **NO** `┤ ├` | conduit si la variable est vraie | `X` |
+      | Contact **NF** `┤/├` | conduit si la variable est fausse | `NOT X` |
+      | Contacts en **série** | ET | `A AND B` |
+      | Branches en **parallèle** | OU | `A OR B` |
+      | Bobine `( )` | écrit le résultat de l'échelon | `Y := ...;` |
+      | Bobine **S** / **R** | met à 1 / à 0 et mémorise | `IF ... THEN Y := TRUE; END_IF` |
+
+      Dans ControlsLab, un programme Ladder est **transcrit en texte structuré** (visible sous « Voir le Structured Text généré ») et exécuté par le même moteur.
+      Les échelons s'exécutent **de haut en bas** à chaque cycle de balayage.
+  - type: callout
+    kind: tip
+    title: Le même auto-maintien, trois façons de le lire
+    md: |
+      Circuit câblé : `(MARCHE ∥ M 13-14) → ARRÊT(NF) → OL 95-96 → bobine M`.
+      Ladder : un échelon avec MARCHE en parallèle sur BobineM, puis ARRÊT, Surcharge (NF) en série, et la bobine BobineM.
+      Texte structuré : `BobineM := (Marche OR BobineM) AND Arret AND NOT Surcharge;`
+  - type: text
+    md: |
+      ## Pendant que l'automate tourne
+
+      Chargez le programme dans l'automate virtuel : les liaisons et les contacts qui **conduisent** s'allument en **vert**. Si un échelon ne
+      fait pas ce que vous attendez, regardez où le courant s'arrête : c'est souvent là que se cache l'erreur (une polarité NO/NF inversée, par exemple).
+
+      ## Un temporisateur dans un échelon
+
+      Un **TON** est une sortie d'échelon : son entrée IN est le résultat de l'échelon, et sa sortie `T1.Q` devient vraie après la durée programmée `PT`.
+      On l'utilise ensuite comme un contact : `T1.Q`. Exemple du bon de travail « démarrage temporisé » : le moteur ne part que 3 secondes après MARCHE.
+  - type: quiz
+    id: q-ld-1
+    question: Un échelon a deux contacts NO en parallèle (A et B) suivis d'un contact NF C, puis la bobine Y. Quand Y est-elle alimentée?
+    choices:
+      - Quand A et B et C sont vraies
+      - Quand (A ou B) est vrai et que C est faux
+      - Quand A est vrai ou que C est vrai
+      - Toujours
+    answer: 1
+    explain: Parallèle = OU, série = ET, et un contact NF conduit quand sa variable est fausse. Donc Y := (A OR B) AND NOT C.
+  - type: quiz
+    id: q-ld-2
+    question: Pourquoi l'auto-maintien met-il la bobine en parallèle avec le bouton MARCHE?
+    choices:
+      - Pour économiser un contact
+      - Pour que la bobine, une fois alimentée, se maintienne elle-même quand on relâche MARCHE
+      - Pour que ARRÊT n'ait plus d'effet
+      - C'est une erreur courante
+    answer: 1
+  - type: practice
+    workorder: wo-006-demarrage-temporise
+    label: Écrire un démarrage temporisé en Ladder
+references:
+  - IEC 61131-3 — Langages de programmation pour automates programmables (LD, ST).

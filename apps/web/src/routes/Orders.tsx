@@ -5,7 +5,14 @@ import { Link, useParams } from 'react-router-dom';
 import { machineById, useRegistry } from '../content';
 import { useT } from '../i18n';
 import { Lab } from '../lab/Lab';
-import { actions, getProgress, useProgress } from '../store/progress';
+import { getPlcSource, type Starters } from '../store/plc';
+import { actions, useProgress } from '../store/progress';
+
+/** Program starters (ST and optional Ladder) declared by a work order. */
+export function startersOf(order: WorkOrder): Starters {
+  const p = order.plc;
+  return { st: p?.starter ?? '', ld: p?.ldStarter as Starters['ld'], languages: p?.languages, defaultLang: p?.defaultLang };
+}
 
 export function OrdersList() {
   const { t, loc } = useT();
@@ -54,7 +61,7 @@ export function OrderPage() {
         faults={order.faults}
         instructor
         programKey={order.id}
-        starter={order.plc?.starter}
+        starters={startersOf(order)}
         showDiagnosis={order.requiresDiagnosis}
         top={(lab) => <OrderHeader order={order} getMachine={() => lab.machine} refresh={lab.refresh} />}
       />
@@ -77,7 +84,7 @@ function OrderHeader({ order, getMachine, refresh }: { order: WorkOrder; getMach
     setTimeout(() => {
       const machine = getMachine();
       const def = machineById(order.machine)!;
-      const r = checkWorkOrder({ order, machine, def, plcSource: order.plc ? (getProgress().programs[order.id] ?? order.plc.starter ?? '') : undefined });
+      const r = checkWorkOrder({ order, machine, def, plcSource: order.plc ? getPlcSource(order.id, startersOf(order)) : undefined });
       setResult(r);
       actions.recordOrder(order.id, r.passed);
       setBusy(false);

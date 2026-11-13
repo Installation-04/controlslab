@@ -1,0 +1,25 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: wo-008-lampe-neutre
+number: BT-0008
+title: Une lampe ne s'allume pas
+machine: bench-lighting
+priority: normal
+complaint: "« La lampe 2 reste éteinte même quand j'allume l'interrupteur. Les autres fonctionnent. L'ampoule est neuve. »"
+requiresDiagnosis: true
+faults: [neutral_open]
+context: >-
+  Allumez l'interrupteur 2 et cherchez pourquoi la lampe est éteinte. Une branche seule qui ne fonctionne pas pointe vers cette branche,
+  pas vers le fusible ni vers l'alimentation.
+hints:
+  - "Mesurez la tension aux bornes de la lampe 2. Un 0 V peut vouloir dire « pas de tension » OU « tension présente des deux côtés »."
+  - "Mesurez chaque borne de la lampe par rapport à la terre (MALT). Un neutre coupé laisse la borne neutre à ≈ 120 V au lieu de 0 V."
+  - "Le défaut est un fil, pas un composant : on le remplace sous cadenas."
+objectives:
+  - { type: state, component: SW2, key: pressed, equals: true, label: Interrupteur 2 allumé pour reproduire le problème }
+  - { type: measured, points: ['LT2:X2', 'PE:G'], mode: VAC, min: 100, label: Tension du côté neutre de la lampe par rapport à la terre (≈ 120 V = neutre ouvert) }
+  - { type: diagnosis, label: Diagnostic correct }
+  - { type: loto_step, step: verify, label: Cadenassage et vérification complets }
+  - { type: replaced, target: W9, label: Fil neutre remplacé }
+  - { type: faults_cleared, label: Défaut corrigé }
+  - { type: loto_step, step: restore, label: Remise en service }
+  - { type: no_violation, label: Aucune faute de sécurité }

@@ -78,7 +78,7 @@ export interface MachineDef {
   notes?: Array<{ text: Localized; at: Point; size?: number }>;
 }
 
-export type MeterMode = 'VAC' | 'VDC' | 'OHM' | 'CONT';
+export type MeterMode = 'VAC' | 'VDC' | 'OHM' | 'CONT' | 'AAC';
 
 export interface MeterReading {
   mode: MeterMode;

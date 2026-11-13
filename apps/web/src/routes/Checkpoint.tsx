@@ -14,7 +14,8 @@ export function CheckpointPage() {
   const { t, loc } = useT();
   const reg = useRegistry();
   const progress = useProgress();
-  const cp = reg.checkpoints[0];
+  const [cpId, setCpId] = useState<string | null>(null);
+  const cp = reg.checkpoints.find((c) => c.id === cpId) ?? reg.checkpoints[0];
   const [run, setRun] = useState<{ fault: string; startedAt: number } | null>(null);
   const [score, setScore] = useState<{ s: Score; fault: string } | null>(null);
   if (!cp) return <main className="page"><p>Aucun point de contrôle.</p></main>;
@@ -27,6 +28,15 @@ export function CheckpointPage() {
   if (!run) {
     return (
       <main className="page">
+        {reg.checkpoints.length > 1 && (
+          <div className="seg" role="radiogroup" aria-label={t('nav.checkpoint')} style={{ marginBottom: 12, flexWrap: 'wrap' }}>
+            {reg.checkpoints.map((c) => (
+              <button key={c.id} role="radio" aria-checked={c.id === cp.id} className={c.id === cp.id ? 'sel' : ''} onClick={() => setCpId(c.id)} data-testid={`cp-pick-${c.id}`}>
+                {loc(c.title).replace(/^Point de contrôle \d+ — /, '')}
+              </button>
+            ))}
+          </div>
+        )}
         <h1>{loc(cp.title)}</h1>
         <Markdown md={loc(cp.intro)} />
         <p className="alert">{t('cp.nohints')}</p>

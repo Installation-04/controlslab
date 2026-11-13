@@ -131,8 +131,10 @@ const contactor: ComponentType = {
     poles: { symbol: 'contacts3', terminals: POLE3 },
     coil: TWO('A1', 'A2', 'coil'),
     aux: TWO('13', '14', 'contact_no'),
+    /** NC auxiliary (21-22): the electrical interlock of reversing starters. */
+    aux_nc: TWO('21', '22', 'contact_nc'),
   },
-  faults: ['coil_open', 'welded', 'aux_open'],
+  faults: ['coil_open', 'welded', 'aux_open', 'aux_nc_open', 'aux_nc_stuck'],
   defaults: { coilV: 120, coilVA: 8, coilR: 110 },
   init: () => ({ energized: false }),
   stamp(ctx) {
@@ -142,6 +144,9 @@ const contactor: ComponentType = {
     if (welded || (closed && !ctx.faults.has('aux_open'))) {
       ctx.net.resistor(`${ctx.id}.aux`, ctx.node('13'), ctx.node('14'), R_CLOSED);
     }
+    // NC auxiliary: closed at rest, opens when the contactor picks up. "stuck" = fused closed (interlock defeated).
+    const ncClosed = ctx.faults.has('aux_nc_stuck') || (!closed && !ctx.faults.has('aux_nc_open'));
+    if (ncClosed) ctx.net.resistor(`${ctx.id}.auxnc`, ctx.node('21'), ctx.node('22'), R_CLOSED);
     if (!ctx.faults.has('coil_open')) {
       const v = num(ctx.params.coilV, 120);
       const r = ctx.mode === 'ac' ? (v * v) / num(ctx.params.coilVA, 8) : num(ctx.params.coilR, 110);
@@ -199,7 +204,7 @@ const motor3: ComponentType = {
   parts: { main: { symbol: 'motor3', terminals: { T1: [0, 0], T2: [50, 0], T3: [100, 0] } } },
   faults: ['winding_open'],
   defaults: { vLL: 600, fla: 5, rpm: 1750, rDC: 1.6, accelMs: 1500, coastMs: 4000 },
-  init: () => ({ speed: 0, state: 'stopped' }),
+  init: () => ({ speed: 0, state: 'stopped', rot: 0, dir: 'none' }),
   stamp(ctx) {
     const star = ctx.inner('star');
     for (let k = 1; k <= 3; k++) {
@@ -228,9 +233,24 @@ const motor3: ComponentType = {
     const balanced = winding && v.every((x) => x > 0.7 * vLL);
     const any = v.some((x) => x > 0.3 * vLL);
     let s = ctx.state.speed as number;
+    let rot = ctx.state.rot as number;
     if (balanced) {
-      s = Math.min(1, s + ctx.dt / num(ctx.params.accelMs, 1500));
-      ctx.state.state = s >= 1 ? 'running' : 'starting';
+      // Phase sequence decides the direction: positive sequence (V2 lags V1 by 120°) = forward.
+      const v1 = ctx.sol.v(ctx.node('T1'));
+      const v2 = ctx.sol.v(ctx.node('T2'));
+      const seq = v1.re * v2.im - v1.im * v2.re < 0 ? 1 : -1;
+      if (rot === 0 || s < 0.02) {
+        rot = seq;
+        s = Math.min(1, s + ctx.dt / num(ctx.params.accelMs, 1500));
+        ctx.state.state = s >= 1 ? 'running' : 'starting';
+      } else if (rot === seq) {
+        s = Math.min(1, s + ctx.dt / num(ctx.params.accelMs, 1500));
+        ctx.state.state = s >= 1 ? 'running' : 'starting';
+      } else {
+        // Reversed while turning: plugging (braking through zero before accelerating the other way).
+        s = Math.max(0, s - ctx.dt / 600);
+        ctx.state.state = 'plugging';
+      }
     } else if (any) {
       s = Math.max(0, s - ctx.dt / 600);
       ctx.state.state = 'single_phasing';
@@ -239,6 +259,9 @@ const motor3: ComponentType = {
       ctx.state.state = s > 0 ? 'coasting' : 'stopped';
     }
     ctx.state.speed = s;
+    if (s <= 0 && !balanced) rot = 0;
+    ctx.state.rot = rot;
+    ctx.state.dir = s > 0.02 ? (rot > 0 ? 'fwd' : 'rev') : 'none';
   },
 };
 
@@ -268,7 +291,7 @@ const transformer: ComponentType = {
   },
 };
 
-/** Push-button. `contact`: NO | NC. `kind`: momentary | mushroom (latching E-stop). */
+/** Push-button. `contact`: NO | NC. `kind`: momentary | mushroom (latching E-stop) | toggle (switch: each press flips it). */
 const pushbutton: ComponentType = {
   parts: { main: TWO('1', '2', 'pushbutton') },
   faults: ['contact_open', 'welded'],
