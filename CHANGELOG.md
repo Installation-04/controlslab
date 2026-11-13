@@ -5,6 +5,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · Versions: [S
 ## [Non publié / Unreleased]
 
 ### Ajouté / Added
+- **Machines** : inverseur de marche (câblé et API) avec contacts NF croisés, sens de rotation réel du moteur (séquence des phases) et freinage à contre-courant; banc d'éclairage 120 V; interrupteur à bascule; contact NF 21-22 sur les contacteurs; **pince ampèremétrique** dans le multimètre.
+- **Contenu** : leçons 6 (inverseur et verrouillage), 7 (Ladder) et 8 (pince et circuits en parallèle); bons de travail BT-0007 à BT-0009 et BT-0011; point de contrôle 2 (inverseur); scénario 3D SC-0004 (convoyeur réversible, bande entraînée selon le sens réel du moteur).
 - **Éditeur Ladder** (`@controlslab/ladder`) : modèle, opérations d'édition, transcription Ladder → ST, écoulement de puissance en direct, validation; éditeur SVG dans les bons de travail et la Cellule 3D; bon de travail BT-0006 (démarrage temporisé), points de départ Ladder pour BT-0005 et les scénarios.
 
 ## [0.1.0] — MVP (phase 1)

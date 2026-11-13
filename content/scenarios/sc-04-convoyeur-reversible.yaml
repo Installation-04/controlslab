@@ -1,0 +1,113 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: sc-04-convoyeur-reversible
+number: SC-0004
+title: Convoyeur réversible vers deux bacs
+complaint: "« Les boîtes arrivent au milieu du convoyeur. AVANT les envoie dans le bac de droite, ARRIÈRE dans le bac de gauche. Je veux pouvoir changer de sens sans rien casser. »"
+context: >-
+  Le convoyeur est entraîné par l'inverseur de marche du panneau (contacteurs KF et KR). Programmez les deux sens avec verrouillage
+  (même logique que BT-0011), puis testez dans la scène : ouvrez le panneau pour appuyer sur AVANT / ARRÊT / ARRIÈRE. Le sens de la bande vient du sens de
+  rotation réel du moteur, donc de la séquence des phases.
+hints:
+  - "C'est le programme de BT-0011 : un auto-maintien par sens, chacun avec « ET PAS l'autre bobine »."
+  - "Changer de sens en marche provoque un freinage à contre-courant du moteur : un bon programme exige d'abord ARRÊT."
+  - "Si un contact NF de verrouillage reste collé, le câblage ne protège plus : votre verrouillage logiciel est la deuxième ligne de défense."
+editable: true
+entities:
+  - { id: PN1, type: panel, x: -1.6, z: -1.9, rot: 0, params: { machine: reversing-plc }, locked: true, name: Panneau inverseur }
+  - { id: CV1, type: conveyor, x: 0, z: 0, rot: 0, params: { length: 4, drive: panel }, locked: true }
+  - { id: SP1, type: spawner, x: 0, z: 0, rot: 0, params: { intervalMs: 5000, max: 4, pattern: 'plastic,cardboard' }, locked: true }
+  - { id: BN1, type: bin, x: -2.15, z: 0, rot: 0, params: { size: 0.7 }, locked: true, name: Bac gauche }
+  - { id: BN2, type: bin, x: 2.15, z: 0, rot: 0, params: { size: 0.7 }, locked: true, name: Bac droit }
+plc:
+  starter: |
+    PROGRAM Main
+    VAR
+        Avant        AT %IX0.0 : BOOL;
+        Arriere      AT %IX0.1 : BOOL;
+        Arret        AT %IX0.2 : BOOL;   (* NF : TRUE quand non appuyé *)
+        Surcharge    AT %IX0.3 : BOOL;
+        RetourKF     AT %IX0.4 : BOOL;
+        RetourKR     AT %IX0.5 : BOOL;
+        AU_OK        AT %IX0.6 : BOOL;
+        BobineKF     AT %QX0.0 : BOOL;
+        BobineKR     AT %QX0.1 : BOOL;
+        VoyantAvant  AT %QX0.2 : BOOL;
+        VoyantArriere AT %QX0.3 : BOOL;
+    END_VAR
+
+    (* À compléter *)
+
+    END_PROGRAM
+  ldStarter:
+    v: 1
+    name: Main
+    vars:
+      - { name: Avant, type: BOOL, address: '%IX0.0' }
+      - { name: Arriere, type: BOOL, address: '%IX0.1' }
+      - { name: Arret, type: BOOL, address: '%IX0.2' }
+      - { name: Surcharge, type: BOOL, address: '%IX0.3' }
+      - { name: RetourKF, type: BOOL, address: '%IX0.4' }
+      - { name: RetourKR, type: BOOL, address: '%IX0.5' }
+      - { name: AU_OK, type: BOOL, address: '%IX0.6' }
+      - { name: BobineKF, type: BOOL, address: '%QX0.0' }
+      - { name: BobineKR, type: BOOL, address: '%QX0.1' }
+      - { name: VoyantAvant, type: BOOL, address: '%QX0.2' }
+      - { name: VoyantArriere, type: BOOL, address: '%QX0.3' }
+    rungs: []
+  tests:
+    - id: t-droite
+      title: AVANT envoie les boîtes dans le bac de droite
+      steps:
+        - { panelPress: PB_FWD }
+        - { run: 300 }
+        - { panelRelease: PB_FWD }
+        - { run: 26000 }
+        - { expectBin: { bin: BN2, min: 3 }, msg: Au moins 3 boîtes doivent arriver au bac de droite en marche avant }
+        - { expectBin: { bin: BN1, max: 0 }, msg: Aucune boîte ne doit aller à gauche en marche avant }
+        - { expectLost: { max: 0 } }
+    - id: t-gauche
+      title: ARRIÈRE envoie les boîtes dans le bac de gauche
+      steps:
+        - { panelPress: PB_REV }
+        - { run: 300 }
+        - { panelRelease: PB_REV }
+        - { run: 26000 }
+        - { expectBin: { bin: BN1, min: 3 }, msg: Au moins 3 boîtes doivent arriver au bac de gauche en marche arrière }
+        - { expectBin: { bin: BN2, max: 0 } }
+        - { expectLost: { max: 0 } }
+    - id: t-inversion
+      title: Changement de sens via ARRÊT, sans boîte perdue
+      steps:
+        - { panelPress: PB_FWD }
+        - { run: 300 }
+        - { panelRelease: PB_FWD }
+        - { run: 12000 }
+        - { panelPress: PB_STOP }
+        - { run: 300 }
+        - { panelRelease: PB_STOP }
+        - { run: 6000 }
+        - { panelPress: PB_REV }
+        - { run: 300 }
+        - { panelRelease: PB_REV }
+        - { run: 14000 }
+        - { expectBin: { bin: BN2, min: 1 }, msg: Le bac de droite doit avoir reçu au moins une boîte pendant la marche avant }
+        - { expectBin: { bin: BN1, min: 1 }, msg: Le bac de gauche doit avoir reçu au moins une boîte après l'inversion }
+        - { expectLost: { max: 0 } }
+    - id: t-verrouillage
+      title: Pas d'inversion directe en marche
+      steps:
+        - { panelPress: PB_FWD }
+        - { run: 300 }
+        - { panelRelease: PB_FWD }
+        - { run: 2000 }
+        - { panelPress: PB_REV }
+        - { run: 300 }
+        - { panelRelease: PB_REV }
+        - { run: 500 }
+        - { expectOutput: { address: '%QX0.1', equals: false }, msg: Le programme ne doit pas commander KR tant que KF est actif }
+        - { expectBelt: { id: CV1, running: true } }
+objectives:
+  - { type: plc_test, test: t-droite, label: AVANT → bac de droite }
+  - { type: plc_test, test: t-gauche, label: ARRIÈRE → bac de gauche }
+  - { type: plc_test, test: t-inversion, label: Inversion via ARRÊT }
+  - { type: plc_test, test: t-verrouillage, label: Verrouillage logiciel }

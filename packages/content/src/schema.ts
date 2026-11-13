@@ -90,6 +90,8 @@ export const Objective = z.discriminatedUnion('type', [
     symmetric: z.boolean().default(true),
     label: Localized,
   }),
+  /** Clamp-meter reading on the wire running from `from` to `to` (terminal refs as in the machine file). */
+  z.object({ type: z.literal('clamp'), from: z.string(), to: z.string(), min: z.number().optional(), max: z.number().optional(), label: Localized }),
   z.object({ type: z.literal('diagnosis'), label: Localized }),
   z.object({
     type: z.literal('state'),

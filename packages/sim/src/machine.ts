@@ -245,7 +245,8 @@ export class Machine {
   press(id: string): ActionResult {
     const c = this.component(id);
     if (c.def.type !== 'pushbutton') return { ok: false, reason: 'not_a_button' };
-    c.state.pressed = true;
+    // A toggle switch flips on each press; momentary/mushroom buttons engage.
+    c.state.pressed = c.params.kind === 'toggle' ? !c.state.pressed : true;
     this.emit({ type: 'press', component: id });
     this.settle(0);
     return { ok: true };
@@ -254,7 +255,7 @@ export class Machine {
   release(id: string): ActionResult {
     const c = this.component(id);
     if (c.def.type !== 'pushbutton') return { ok: false, reason: 'not_a_button' };
-    if (c.params.kind !== 'mushroom') c.state.pressed = false;
+    if (c.params.kind !== 'mushroom' && c.params.kind !== 'toggle') c.state.pressed = false;
     this.emit({ type: 'release', component: id });
     this.settle(0);
     return { ok: true };
@@ -388,6 +389,7 @@ export class Machine {
 
   // ---------- Multimeter ----------
   measure(a: string, b: string, mode: MeterMode): MeterReading {
+    if (mode === 'AAC') return this.clamp(a);
     if (a !== GND) this.checkTerminal(a);
     if (b !== GND) this.checkTerminal(b);
     const vab = this.vab(a, b);
@@ -418,6 +420,17 @@ export class Machine {
       }
     }
     this.emit({ type: 'measure', reading, energized });
+    return reading;
+  }
+
+  /** Clamp-on ammeter around a wire: AC current magnitude (A). Works live; never needs isolation. */
+  clamp(wireId: string): MeterReading {
+    if (!this.def.wires.some((w) => w.id === wireId)) throw new MachineError(`Unknown wire "${wireId}"`);
+    const amps = this.wireFaults.has(wireId) ? 0 : abs(this.sol.current(wireId));
+    const value = Math.round(amps * 1000) / 1000;
+    const display = value < 10 ? value.toFixed(2) : value < 100 ? value.toFixed(1) : value.toFixed(0);
+    const reading: MeterReading = { mode: 'AAC', a: wireId, b: '', value, display, unit: 'A~' };
+    this.emit({ type: 'measure', reading, energized: amps > 1e-3 });
     return reading;
   }
 

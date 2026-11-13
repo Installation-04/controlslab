@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: wo-009-inverseur-verrouillage
+number: BT-0009
+title: L'inverseur ne part qu'en arrière
+machine: reversing-3w
+priority: urgent
+complaint: "« Le convoyeur réversible tourne en marche arrière, mais quand j'appuie sur AVANT, rien ne se passe. Pas de claquement du contacteur. »"
+requiresDiagnosis: true
+faults: [kr_nc_open]
+context: >-
+  Inverseur de marche câblé (contacteurs KF avant et KR arrière). Le contacteur KF ne colle pas à l'appui sur AVANT. Rappelez-vous que chaque
+  contacteur est verrouillé par le contact NF du **autre** contacteur.
+hints:
+  - "Pas de claquement = la bobine KF ne reçoit pas ses 120 V. Quels éléments sont en série avec elle?"
+  - "Dans le circuit AVANT, il y a le contact NF 21-22 de KR. Maintenez AVANT et mesurez en travers de ce contact."
+  - "120 V en travers d'un contact « normalement fermé » : il est ouvert alors que KR est relâché."
+objectives:
+  - { type: measured, points: ['KR:21', 'KR:22'], mode: VAC, min: 100, label: Tension en travers du contact NF 21-22 de KR (AVANT maintenu) }
+  - { type: diagnosis, label: Diagnostic correct }
+  - { type: loto_step, step: verify, label: Cadenassage complet avant l'intervention }
+  - { type: replaced, target: KR, label: Contacteur KR remplacé }
+  - { type: faults_cleared, label: Défaut corrigé }
+  - { type: loto_step, step: restore, label: Remise en service }
+  - { type: no_violation, label: Aucune faute de sécurité }

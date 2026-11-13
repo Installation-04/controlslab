@@ -10,11 +10,11 @@ Write PLC programs, measure circuits with a virtual multimeter, troubleshoot fau
 ## What's in 0.1 (MVP)
 
 - **Structured Text PLC engine** (IEC 61131-3): parser, type checker, fixed scan cycle, `TON`/`TOF`/`TP` timers, `CTU`/`CTD`/`CTUD` counters, `R_TRIG`/`F_TRIG` edge detection, `SR`/`RS` latches. Runs in a Web Worker.
-- **Virtual machine**: a 3-wire across-the-line motor starter (600 V power, 120 V control), **hardwired** and **PLC-controlled** versions. Live SVG schematic, virtual multimeter (VAC, Ω, continuity), injectable faults (open overload contact, welded contactor, blown fuse, open coil…), and a **lockout/tagout** sequence with *live – dead – live* verification.
+- **Virtual machines**: a 3-wire across-the-line starter (hardwired and PLC-controlled), a **reversing starter** (two contactors, cross-wired NC interlock, hardwired and PLC versions) and a **120 V lighting bench** (parallel circuits). Live SVG schematic, virtual multimeter (VAC, Ω, continuity, **clamp ammeter**), injectable faults (open overload contact, welded contactor, blown fuse, open coil…), and a **lockout/tagout** sequence with *live – dead – live* verification.
 - **Ladder editor** (LD) alongside ST: NO/NC/edge contacts, parallel branches, coils (normal, negated, set/reset), timers and counters, with **live power flow** while the PLC runs. Ladder is transpiled to readable ST (shown in the editor) and run by the same engine.
 - **3D cell** (three.js): drag-and-drop an **electrical panel**, **conveyors**, a box dispenser, **sensors** (photoelectric, inductive), a **pusher cylinder**, buttons, lights, stack lights and bins into the scene. Each device binds to a **PLC I/O address** (`%IX1.0`, `%QX1.0`…) in a property inspector, and the ST program drives it all. Double-click the panel to open it: same interactive schematic, multimeter and lockout as the lab. **3 scenarios** included (basic conveyor, batch of 3, metal/plastic sorter) plus a **free cell**.
-- **5 lessons** (Québec French, English UI strings ready): Ohm's law · multimeter · LOTO · reading a schematic · first ST program (seal-in).
-- **Work orders** with an automatic checker, and a **scored checkpoint** (no hints, random fault).
+- **8 lessons** (Québec French, English UI strings ready): Ohm's law · multimeter · LOTO · reading a schematic · first ST program · reversing starter & interlocking · Ladder · clamp meter.
+- **Work orders** with an automatic checker, and **2 scored checkpoints** (no hints, random fault).
 - **Local progress** in the browser, **printable record**, export/import (JSON backup, `.st` programs, community YAML content).
 
 Planned: Modbus TCP bridge to real/soft PLCs, a drag-and-drop panel *wiring* editor, instructor dashboards.

@@ -11,6 +11,7 @@ const short = (ref?: string) => (ref ? ref.replace(':', ' · ') : '—');
 // ---------------- Multimeter ----------------
 const MODES: Array<{ id: MeterMode; label: string }> = [
   { id: 'VAC', label: 'V~' },
+  { id: 'AAC', label: 'A~' },
   { id: 'VDC', label: 'V⎓' },
   { id: 'OHM', label: 'Ω' },
   { id: 'CONT', label: '•)))' },
@@ -25,17 +26,19 @@ export function MeterPanel(props: {
   onMeasure(): void;
   onClear(): void;
   count: number;
+  clampWire?: string;
 }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   const { reading, probes } = props;
-  const ready = !!probes.red && !!probes.black;
+  const clamp = props.mode === 'AAC';
+  const ready = clamp ? !!props.clampWire : !!probes.red && !!probes.black;
   const warn = reading?.warning === 'ohms_on_live';
   return (
     <section className="panel meter" aria-label={t('meter.title')}>
       <h3>{t('meter.title')}</h3>
       <div className={`lcd ${warn ? 'warn' : ''}`} data-testid="meter-display" aria-live="polite">
         <span className="digits">{reading ? reading.display : '----'}</span>
-        <span className="unit">{reading ? (reading.mode === 'OHM' || reading.mode === 'CONT' ? (reading.display.endsWith('k') || reading.display.endsWith('M') ? 'Ω' : 'Ω') : reading.unit) : ''}</span>
+        <span className="unit">{reading ? (reading.mode === 'OHM' || reading.mode === 'CONT' ? 'Ω' : reading.unit) : ''}</span>
         {reading?.beep && <span className="beep" aria-label="bip">♪</span>}
       </div>
       <div className="dial" role="radiogroup" aria-label="Fonction">
@@ -45,48 +48,65 @@ export function MeterPanel(props: {
           </button>
         ))}
       </div>
-      <dl className="probes">
-        <dt><span className="dot red" />{t('meter.red')}</dt>
-        <dd data-testid="probe-red">{short(probes.red)}</dd>
-        <dt><span className="dot black" />{t('meter.black')}</dt>
-        <dd data-testid="probe-black">{short(probes.black)}</dd>
-      </dl>
+      {clamp ? (
+        <dl className="probes">
+          <dt><span className="dot clamp" />{lang === 'fr' ? 'Pince autour du fil' : 'Clamp on wire'}</dt>
+          <dd data-testid="clamp-wire">{props.clampWire ?? '—'}</dd>
+        </dl>
+      ) : (
+        <dl className="probes">
+          <dt><span className="dot red" />{t('meter.red')}</dt>
+          <dd data-testid="probe-red">{short(probes.red)}</dd>
+          <dt><span className="dot black" />{t('meter.black')}</dt>
+          <dd data-testid="probe-black">{short(probes.black)}</dd>
+        </dl>
+      )}
       <div className="row">
         <button className="primary" disabled={!ready} onClick={props.onMeasure} data-testid="measure">{t('meter.measure')}</button>
         <button onClick={props.onClear}>{t('meter.clear')}</button>
       </div>
       {warn && <p className="alert bad">{t('meter.ohmslive')}</p>}
-      <p className="muted small">{!ready ? t('meter.hint') : t('meter.log', { n: props.count })}</p>
+      <p className="muted small">{!ready ? (clamp ? (lang === 'fr' ? 'Cliquez un fil du schéma pour y placer la pince (mesure sous tension, sans contact).' : 'Click a wire on the schematic to clamp it (live measurement, no contact).') : t('meter.hint')) : t('meter.log', { n: props.count })}</p>
     </section>
   );
 }
 
 // ---------------- Operator station ----------------
 export function StationPanel({ machine, rev, api }: { machine: Machine; rev: number; api: { press(id: string): void; release(id: string): void; resetEStop(id: string): void; resetOverload(id: string): void } }) {
-  const { t } = useT();
+  const { t, loc, lang } = useT();
   void rev;
   const def = machine.def;
-  const has = (id: string) => def.components.some((c) => c.id === id);
   const mtr = def.components.find((c) => c.type === 'motor3');
-  const ms = mtr ? machine.state<{ state: string; speed: number }>(mtr.id) : null;
+  const ms = mtr ? machine.state<{ state: string; speed: number; dir?: string }>(mtr.id) : null;
   const ol = def.components.find((c) => c.type === 'overload');
   const olS = ol ? machine.state<{ tripped: boolean; heat: number }>(ol.id) : null;
-  const es = machine.def.components.find((c) => c.type === 'pushbutton' && c.params?.kind === 'mushroom');
+  const es = def.components.find((c) => c.type === 'pushbutton' && c.params?.kind === 'mushroom');
   const esPressed = es ? machine.state<{ pressed: boolean }>(es.id).pressed : false;
+  // Operator buttons: every pushbutton except the E-stop, stop-like (red) ones last.
+  const buttons = def.components
+    .filter((c) => c.type === 'pushbutton' && c.params?.kind !== 'mushroom' && c.id.startsWith('PB_') || (c.type === 'pushbutton' && c.params?.kind === 'toggle'))
+    .sort((a, b) => Number(a.params?.color === 'red') - Number(b.params?.color === 'red'));
+  const nameOf = (c: (typeof buttons)[number]) =>
+    c.id === 'PB_START' ? t('lab.start') : c.id === 'PB_STOP' ? t('lab.stop') : (loc(c.label) || c.tag || c.id).replace(/\s*\((NO|NF|NC)\)\s*$/, '');
+  const testId = (id: string) => (id === 'PB_START' ? 'btn-start' : id === 'PB_STOP' ? 'btn-stop' : `btn-${id.toLowerCase()}`);
   return (
     <section className="panel station" aria-label={t('lab.station')}>
       <h3>{t('lab.station')}</h3>
       <div className="buttons">
-        {has('PB_START') && (
-          <button className="pb green" onPointerDown={() => api.press('PB_START')} onPointerUp={() => api.release('PB_START')} onPointerLeave={() => api.release('PB_START')} data-testid="btn-start">
-            {t('lab.start')}
-          </button>
-        )}
-        {has('PB_STOP') && (
-          <button className="pb red" onPointerDown={() => api.press('PB_STOP')} onPointerUp={() => api.release('PB_STOP')} onPointerLeave={() => api.release('PB_STOP')} data-testid="btn-stop">
-            {t('lab.stop')}
-          </button>
-        )}
+        {buttons.map((c) => {
+          const toggle = c.params?.kind === 'toggle';
+          const pressed = machine.state<{ pressed: boolean }>(c.id).pressed;
+          const color = toggle ? 'toggle' : c.params?.color === 'red' ? 'red' : 'green';
+          return toggle ? (
+            <button key={c.id} className={`pb toggle ${pressed ? 'engaged' : ''}`} aria-pressed={pressed} onClick={() => api.press(c.id)} data-testid={testId(c.id)}>
+              {nameOf(c)} : {pressed ? 'ON' : 'OFF'}
+            </button>
+          ) : (
+            <button key={c.id} className={`pb ${color}`} onPointerDown={() => api.press(c.id)} onPointerUp={() => api.release(c.id)} onPointerLeave={() => api.release(c.id)} data-testid={testId(c.id)}>
+              {nameOf(c)}
+            </button>
+          );
+        })}
         {es && (
           <button className={`pb estop ${esPressed ? 'engaged' : ''}`} onClick={() => (esPressed ? api.resetEStop(es.id) : api.press(es.id))} data-testid="btn-estop" aria-pressed={esPressed}>
             {esPressed ? t('lab.estop.reset') : t('lab.estop')}
@@ -96,6 +116,8 @@ export function StationPanel({ machine, rev, api }: { machine: Machine; rev: num
       {ms && (
         <p className="status">
           {t('lab.motor')} : <strong className={`mstate ${ms.state}`} data-testid="motor-state">{t(`lab.motor.${ms.state}` as StringKey)}</strong>
+          {ms.dir === 'fwd' && <span className="dirtag" data-testid="motor-dir">{lang === 'fr' ? 'AVANT' : 'FORWARD'}</span>}
+          {ms.dir === 'rev' && <span className="dirtag rev" data-testid="motor-dir">{lang === 'fr' ? 'ARRIÈRE' : 'REVERSE'}</span>}
         </p>
       )}
       {olS && (

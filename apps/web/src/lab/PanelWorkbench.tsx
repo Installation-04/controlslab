@@ -27,12 +27,14 @@ export function PanelWorkbench({ machine: m, rev, refresh, sideMiddle, sideEnd, 
   const [reading, setReading] = useState<MeterReading | null>(null);
   const [count, setCount] = useState(0);
   const [violation, setViolation] = useState(false);
+  const [clampWire, setClampWire] = useState<string | undefined>();
 
   useEffect(() => {
     setProbes({});
     setReading(null);
     setCount(0);
     setViolation(false);
+    setClampWire(undefined);
   }, [m]);
 
   const onProbe = useCallback((ref: string) => {
@@ -66,6 +68,14 @@ export function PanelWorkbench({ machine: m, rev, refresh, sideMiddle, sideEnd, 
           onRelease={act((id: string) => m.release(id))}
           onToggleDisconnect={act((id: string) => m.setDisconnect(id, !m.state<{ on: boolean }>(id).on))}
           onResetOverload={act((id: string) => m.resetOverload(id))}
+          clampMode={mode === 'AAC'}
+          clampWire={clampWire}
+          onWire={(id) => {
+            setClampWire(id);
+            setReading(m.clamp(id));
+            setCount((c) => c + 1);
+            refresh();
+          }}
         />
         {mainExtra}
       </div>
@@ -87,7 +97,15 @@ export function PanelWorkbench({ machine: m, rev, refresh, sideMiddle, sideEnd, 
           setMode={setMode}
           reading={reading}
           count={count}
+          clampWire={clampWire}
           onMeasure={() => {
+            if (mode === 'AAC') {
+              if (!clampWire) return;
+              setReading(m.clamp(clampWire));
+              setCount((c) => c + 1);
+              refresh();
+              return;
+            }
             if (!probes.red || !probes.black) return;
             setReading(m.measure(probes.red, probes.black, mode));
             setCount((c) => c + 1);

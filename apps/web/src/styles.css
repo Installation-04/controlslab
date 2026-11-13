@@ -389,3 +389,10 @@ select, input[type='text'], input:not([type]), input[inputmode] {
 .ld-vars table { width: auto; }
 .ld-vars td input { width: 130px; }
 .ld-vars td select { width: 90px; }
+
+.pb.toggle { background: #6b7a89; border-radius: 8px; min-width: 150px; }
+.pb.toggle.engaged { background: #2f9e44; }
+.dirtag { background: var(--ok-bg); color: var(--ok); font-size: 0.75rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; }
+.dirtag.rev { background: var(--warn-bg); color: #8a5a00; }
+.dot.clamp { background: var(--amber); border: 1px solid #8a5a00; }
+.schematic .wire.clamped polyline { filter: drop-shadow(0 0 3px var(--amber)); }
