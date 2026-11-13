@@ -2,7 +2,7 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · Versions: [SemVer](https://semver.org/lang/fr/).
 
-## [Non publié / Unreleased]
+## [0.2.0] — Phase 2
 
 ### Ajouté / Added
 - **Pont Modbus TCP** (`@controlslab/connector`) : serveur Modbus TCP (fonctions 01–06, 15, 16) ⇄ WebSocket local; un automate externe lit les capteurs (%IX → entrées discrètes) et pilote les sorties (%QX → bobines); origines contrôlées, sécurité intrinsèque à la déconnexion; fichier unique distribué dans l'application et les releases; sélecteur « Automate virtuel / externe » dans les bons de travail et la Cellule 3D.
