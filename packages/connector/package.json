@@ -1,0 +1,20 @@
+{
+  "name": "@controlslab/connector",
+  "version": "0.1.0",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "description": "ControlsLab connector: exposes the simulated machine I/O as a Modbus TCP server so an external PLC can drive it.",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.0",
+    "modbus-serial": "^8.0.25"
+  }
+}

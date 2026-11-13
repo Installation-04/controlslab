@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "tsc -p . && vite build",
     "preview": "vite preview",
-    "e2e": "node e2e/smoke.mjs && node e2e/cell.mjs"
+    "e2e": "node e2e/smoke.mjs && node e2e/cell.mjs && node e2e/ladder.mjs && node e2e/machines.mjs && node e2e/modbus.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.8.0",
@@ -17,6 +17,7 @@
     "@codemirror/view": "^6.36.0",
     "@controlslab/content": "*",
     "@controlslab/factory": "^0.1.0",
+    "@controlslab/ladder": "^0.1.0",
     "@controlslab/plc-engine": "*",
     "@controlslab/sim": "*",
     "@lezer/highlight": "^1.2.5",

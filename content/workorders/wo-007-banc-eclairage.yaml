@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: wo-007-banc-eclairage
+number: BT-0007
+title: Courants et tensions sur le banc d'éclairage
+machine: bench-lighting
+priority: low
+complaint: "« Avant de brancher une nouvelle charge, je veux savoir combien de courant le circuit tire déjà, branche par branche, et vérifier que le fusible de 15 A est suffisant. »"
+context: >-
+  Le banc a trois branches en parallèle derrière le fusible F1 : deux lampes de 60 W et un radiateur de 1 500 W (120 V).
+  Allumez les trois interrupteurs, puis utilisez la pince ampèremétrique (mode A~, cliquez sur un fil) et le voltmètre.
+hints:
+  - "Prévoyez les valeurs avant de mesurer : I = P ÷ V. Une lampe de 60 W tire 0,5 A; le radiateur 1 500 ÷ 120 = 12,5 A."
+  - "Les branches sont en parallèle : le courant du fusible est la somme des courants des branches."
+  - "La pince se pose autour d'un seul fil à la fois. Sur le schéma, choisissez le fil entre l'interrupteur et la charge."
+objectives:
+  - { type: state, component: SW1, key: pressed, equals: true, label: Interrupteur 1 allumé }
+  - { type: state, component: SW2, key: pressed, equals: true, label: Interrupteur 2 allumé }
+  - { type: state, component: SW3, key: pressed, equals: true, label: Interrupteur 3 (radiateur) allumé }
+  - { type: clamp, from: 'SW1:2', to: 'LT1:X1', min: 0.4, max: 0.6, label: Courant de la lampe 1 (≈ 0,5 A) }
+  - { type: clamp, from: 'SW3:2', to: 'LT3:X1', min: 11.5, max: 13.5, label: Courant du radiateur (≈ 12,5 A) }
+  - { type: clamp, from: 'F1:2', to: 'JA:T', min: 12.5, max: 14.5, label: Courant total dans le fusible F1 (≈ 13,5 A) }
+  - { type: measured, points: ['LT3:X1', 'LT3:X2'], mode: VAC, min: 110, max: 125, label: Tension aux bornes du radiateur (≈ 120 V) }

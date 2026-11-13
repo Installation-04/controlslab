@@ -7,7 +7,7 @@ import { Lab } from '../lab/Lab';
 export function SandboxPage() {
   const { t, loc } = useT();
   const reg = useRegistry();
-  const [id, setId] = useState(reg.machines[0]?.id ?? '');
+  const [id, setId] = useState(reg.machines.find((m) => m.id === 'motor-starter-3w')?.id ?? reg.machines[0]?.id ?? '');
   const def = reg.machines.find((m) => m.id === id);
   return (
     <main className="page wide">

@@ -45,6 +45,7 @@ jobs:
         run: |
           gh release create "v${{ steps.v.outputs.version }}" \
             "controlslab-web-v${{ steps.v.outputs.version }}.tar.gz" \
+            "dist-connector/controlslab-connector.mjs#controlslab-connector.mjs (Modbus TCP connector, Node.js 20+)" \
             --target "${{ github.sha }}" \
             --title "ControlsLab v${{ steps.v.outputs.version }}" \
             --generate-notes

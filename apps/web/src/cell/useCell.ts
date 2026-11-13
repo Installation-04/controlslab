@@ -7,6 +7,7 @@ import { CellCore, type EntityDef } from '@controlslab/factory';
 import type { IoPoint, PlcErrorInfo, PlcStatus, WorkerResponse } from '@controlslab/plc-engine';
 import type { MachineDef } from '@controlslab/sim';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ExternalPlc } from '../plc/external';
 import type { FrameState } from './scene3d';
 
 const STEP_MS = 20;
@@ -19,12 +20,13 @@ export interface CellRuntime {
   refresh(): void;
   frame: () => FrameState;
   plc: { status: PlcStatus | null; errors: PlcErrorInfo[]; loaded: boolean; ioPoints: IoPoint[] };
-  start(source: string): void;
+  /** Start the simulation. Returns 'need-connector' if an external PLC is selected but not connected. */
+  start(source: string): 'ok' | 'need-connector';
   stop(): void;
   reset(): void;
 }
 
-export function useCellRuntime(entities: EntityDef[], machines: Record<string, MachineDef>, faults: string[] = []): CellRuntime {
+export function useCellRuntime(entities: EntityDef[], machines: Record<string, MachineDef>, faults: string[] = [], external?: ExternalPlc): CellRuntime {
   const [gen, setGen] = useState(0);
   const [running, setRunning] = useState(false);
   const [rev, setRev] = useState(0);
@@ -39,6 +41,8 @@ export function useCellRuntime(entities: EntityDef[], machines: Record<string, M
   const inputs = useRef<Record<string, boolean>>({});
   const lastSent = useRef('');
   const runningRef = useRef(false);
+  const extRef = useRef(external);
+  extRef.current = external;
   const coreRef = useRef(core);
   coreRef.current = core;
 
@@ -65,6 +69,14 @@ export function useCellRuntime(entities: EntityDef[], machines: Record<string, M
     const id = setInterval(() => {
       if (!runningRef.current) return;
       const c = coreRef.current;
+      const ext = extRef.current;
+      if (ext?.active) {
+        // External PLC (Modbus TCP): coil writes drive the cell, sensors are sent back.
+        inputs.current = c.step(STEP_MS, ext.link.outputs);
+        ext.link.sendInputs(inputs.current);
+        if (++tick % 5 === 0) setRev((r) => r + 1);
+        return;
+      }
       inputs.current = c.step(STEP_MS, outputs.current);
       const w = worker.current;
       if (w) {
@@ -80,8 +92,15 @@ export function useCellRuntime(entities: EntityDef[], machines: Record<string, M
   }, []);
 
   const start = useCallback(
-    (source: string) => {
+    (source: string): 'ok' | 'need-connector' => {
       killWorker();
+      const ext = extRef.current;
+      if (ext?.enabled) {
+        if (ext.link.state !== 'connected') return 'need-connector';
+        runningRef.current = true;
+        setRunning(true);
+        return 'ok';
+      }
       const w = new Worker(new URL('../../../../packages/plc-engine/src/worker.ts', import.meta.url), { type: 'module' });
       worker.current = w;
       w.onmessage = (ev: MessageEvent<WorkerResponse>) => {
@@ -99,6 +118,7 @@ export function useCellRuntime(entities: EntityDef[], machines: Record<string, M
         }
       };
       w.postMessage({ type: 'load', source });
+      return 'ok';
     },
     [killWorker],
   );

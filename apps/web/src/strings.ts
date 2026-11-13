@@ -53,6 +53,7 @@ export const STRINGS = {
   'lab.motor.starting': s('démarrage', 'starting'),
   'lab.motor.running': s('en marche', 'running'),
   'lab.motor.coasting': s('roue libre', 'coasting'),
+  'lab.motor.plugging': s('freinage à contre-courant', 'plugging'),
   'lab.motor.single_phasing': s('marche monophasée (bourdonnement)', 'single phasing (humming)'),
   'meter.title': s('Multimètre', 'Multimeter'),
   'meter.measure': s('Mesurer', 'Measure'),

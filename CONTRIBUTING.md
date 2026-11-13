@@ -97,7 +97,7 @@ objectives:                         # le bon est réussi quand TOUS sont vrais
   - { type: no_violation, label: Aucune faute de sécurité }
 ```
 
-Types d'objectifs : `faults_cleared` · `no_violation` (`code` optionnel : `ohms_on_live`, `work_without_loto`, `disconnect_under_load`, `lock_removed_before_restore`) · `loto_step` (`notify` `shutdown` `isolate` `lockout` `stored_energy` `try_start` `verify` `restore`) · `measured` (`points`, `mode` VAC/VDC/OHM/CONT, `min`/`max`, l'ordre des sondes est indifférent) · `diagnosis` · `state` (`component`, `key`, `equals`) · `lamp_lit` · `replaced` · `plc_test`.
+Types d'objectifs : `faults_cleared` · `no_violation` (`code` optionnel : `ohms_on_live`, `work_without_loto`, `disconnect_under_load`, `lock_removed_before_restore`) · `loto_step` (`notify` `shutdown` `isolate` `lockout` `stored_energy` `try_start` `verify` `restore`) · `measured` (`points`, `mode` VAC/VDC/OHM/CONT, `min`/`max`, l'ordre des sondes est indifférent) · `clamp` (pince ampèremétrique : `from`, `to` = bornes du fil, `min`/`max` en A) · `diagnosis` · `state` (`component`, `key`, `equals`) · `lamp_lit` · `replaced` · `plc_test`.
 
 **Bon de travail avec programme d'API** (la machine doit être en `mode: plc`) :
 
@@ -120,6 +120,8 @@ objectives:
 ```
 
 Les messages `msg` sont ce que l'apprenant lit quand il échoue : rendez-les **instructifs** (dites ce qui a été observé, pas la solution).
+
+**Ladder ou ST.** Ajoutez `ldStarter` (programme Ladder de départ) dans `plc:` pour offrir le Ladder à l'apprenant (`languages: [st, ld]`, `defaultLang: ld` pour l'imposer par défaut). Le Ladder est transcrit en ST puis exécuté par le même moteur : **les mêmes tests scriptés** valident les deux langages. Format d'un échelon (JSON/YAML) : `logic` = arbre `contact` (`k`: NO/NC/P/N) / `cmp` / `series` / `parallel`; `outputs` = `coil` (`normal`, `negated`, `set`, `reset`), `timer` (TON/TOF/TP) ou `counter` (CTU/CTD). Voir `packages/ladder/src/types.ts`; les contacts sur la sortie d'un bloc s'écrivent `T1.Q`, `C1.CV`.
 
 **Ajoutez toujours un test de « solution modèle »** dans `packages/content/test/golden.test.ts` : il prouve que votre bon est réalisable et que l'état initial échoue.
 
@@ -165,11 +167,11 @@ faults:
 | `source3` | `main` → L1 L2 L3 | `phase_loss` |
 | `disconnect3` | `main` → L1 L2 L3 / T1 T2 T3 | `pole_open` |
 | `fuse` | `main` → 1 2 | `blown` |
-| `contactor` | `poles` → L1-3/T1-3 · `coil` → A1 A2 · `aux` → 13 14 | `coil_open` `welded` `aux_open` |
+| `contactor` | `poles` → L1-3/T1-3 · `coil` → A1 A2 · `aux` → 13 14 (NO) · `aux_nc` → 21 22 (NF, verrouillage) | `coil_open` `welded` `aux_open` `aux_nc_open` `aux_nc_stuck` |
 | `overload` | `heaters` → L1-3/T1-3 · `nc` → 95 96 · `no` → 97 98 | `nc_open` |
-| `motor3` | `main` → T1 T2 T3 | `winding_open` |
+| `motor3` | `main` → T1 T2 T3 (le sens de rotation vient de la séquence des phases; freinage à contre-courant si on inverse en marche) | `winding_open` |
 | `transformer` | `main` → H1 H2 X1 X2 | `primary_open` |
-| `pushbutton` | `main` → 1 2 (`params.contact` NO/NC, `kind` momentary/mushroom, `color`) | `contact_open` `welded` |
+| `pushbutton` | `main` → 1 2 (`params.contact` NO/NC, `kind` momentary / mushroom (arrêt d'urgence) / toggle (interrupteur à bascule), `color`) | `contact_open` `welded` |
 | `lamp` | `main` → X1 X2 | `burnt` |
 | `plc_input` | `main` → IN COM (`params.address`) | `dead` |
 | `plc_output` | `main` → C O (`params.address`) | `welded` |
@@ -235,6 +237,10 @@ objectives:
 **Ajoutez toujours une solution modèle** dans `packages/content/test/scenarios.test.ts` : elle doit réussir tous les tests, et le programme de départ doit échouer. Pensez aux timings : le moteur met ~1,5 s à accélérer et ~4 s à s'arrêter par inertie.
 
 Un **nouveau type d'appareil** demande du code : `packages/factory/src/types.ts` (spécification) + `sim.ts` (comportement) + `apps/web/src/cell/scene3d.ts` (dessin 3D), avec tests.
+
+## Contribuer au connecteur Modbus
+
+`packages/connector` : `modbus.ts` (protocole, fonctions pures), `bridge.ts` (adresses %IX/%QX ⇄ tables), `server.ts` (TCP + WebSocket), `cli.ts`. Le protocole WebSocket est documenté en tête de `server.ts`. Tout changement de protocole doit passer les tests de sockets réels **et** le test d'interopérabilité avec un client Modbus tiers (`test/interop.test.ts`). Le fichier distribuable se construit avec `npm run connector:build`.
 
 ## Contribuer au moteur d'API
 

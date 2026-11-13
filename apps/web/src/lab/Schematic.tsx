@@ -13,6 +13,10 @@ export interface SchematicProps {
   onRelease(id: string): void;
   onToggleDisconnect(id: string): void;
   onResetOverload(id: string): void;
+  /** Clamp-meter mode: wires become clickable. */
+  clampMode?: boolean;
+  clampWire?: string;
+  onWire?(id: string): void;
   highlight?: string[];
   /** Hide interactivity (lesson figures). */
   readOnly?: boolean;
@@ -162,6 +166,22 @@ const SYMBOLS: Record<string, (c: PartCtx) => ReactNode> = {
       </g>
     );
   },
+  contact_nc: ({ state, tag }) => {
+    // NC auxiliary of a contactor: closed at rest, opens when the contactor is energized.
+    const open = state.energized === true;
+    return (
+      <g>
+        <polyline points="0,0 22,0" {...S} />
+        <polyline points="38,0 60,0" {...S} />
+        <polyline points="22,-10 22,10" {...S} />
+        <polyline points="38,-10 38,10" {...S} />
+        {!open && <line x1={22} y1={0} x2={38} y2={0} {...S} />}
+        <polyline points="17,-13 43,13" {...S} strokeWidth={1.2} />
+        <text x={30} y={-16} className="sym-text" textAnchor="middle">{tag}</text>
+        <text x={30} y={26} className="sym-term" textAnchor="middle">21 – 22</text>
+      </g>
+    );
+  },
   ol_no: ({ state }) => {
     const tripped = state.tripped === true;
     return (
@@ -188,7 +208,8 @@ const SYMBOLS: Record<string, (c: PartCtx) => ReactNode> = {
         </g>
         <text x={50} y={44} className="sym-text strong" textAnchor="middle">M1</text>
         <text x={50} y={59} className="sym-text" textAnchor="middle">3~</text>
-        <text x={90} y={98} className="sym-state">{state.state === 'running' ? '' : ''}</text>
+        {state.dir === 'fwd' && <text x={50} y={92} className="sym-state on" textAnchor="middle">↻ AV</text>}
+        {state.dir === 'rev' && <text x={50} y={92} className="sym-state off" textAnchor="middle">↺ AR</text>}
       </g>
     );
   },
@@ -298,8 +319,14 @@ function SchematicImpl(p: SchematicProps) {
     const mid = path[Math.floor(path.length / 2) - 1] ?? a;
     const mid2 = path[Math.floor(path.length / 2)] ?? b;
     return (
-      <g key={w.id} className={`wire ${c.cls} ${hl.has(w.id) ? 'hl' : ''}`} data-wire={w.id}>
+      <g key={w.id} className={`wire ${c.cls} ${hl.has(w.id) ? 'hl' : ''} ${p.clampWire === w.id ? 'clamped' : ''}`} data-wire={w.id}>
         <polyline points={pts(path)} fill="none" stroke={open ? 'var(--bad)' : c.stroke} strokeWidth={c.width} strokeDasharray={open ? '5 4' : undefined} strokeLinejoin="round" />
+        {p.clampMode && p.onWire && (
+          <polyline points={pts(path)} fill="none" stroke="transparent" strokeWidth={14} style={{ cursor: 'copy' }} onClick={() => p.onWire!(w.id)} data-testid={`wire-${w.id}`}>
+            <title>{`${w.label ?? w.id} — ${w.from} → ${w.to}`}</title>
+          </polyline>
+        )}
+        {p.clampWire === w.id && <polyline points={pts(path)} fill="none" stroke="var(--amber)" strokeWidth={c.width + 6} opacity={0.45} pointerEvents="none" />}
         {w.junctions?.map((j, i) => <circle key={i} cx={j[0]} cy={j[1]} r={3.4} fill={open ? 'var(--bad)' : c.stroke} />)}
         {w.label && (
           <text x={(mid[0] + mid2[0]) / 2 + 3} y={(mid[1] + mid2[1]) / 2 - 3} className="wire-label">
@@ -324,13 +351,13 @@ function SchematicImpl(p: SchematicProps) {
         cursor = 'pointer';
         handlers.onPointerDown = (e: React.PointerEvent) => {
           e.preventDefault();
-          if (comp.params.kind === 'mushroom') p.onPress(c.id);
+          if (comp.params.kind === 'mushroom' || comp.params.kind === 'toggle') p.onPress(c.id);
           else {
             (e.target as Element).setPointerCapture?.(e.pointerId);
             p.onPress(c.id);
           }
         };
-        if (comp.params.kind !== 'mushroom') {
+        if (comp.params.kind !== 'mushroom' && comp.params.kind !== 'toggle') {
           handlers.onPointerUp = () => p.onRelease(c.id);
           handlers.onPointerCancel = () => p.onRelease(c.id);
         }
