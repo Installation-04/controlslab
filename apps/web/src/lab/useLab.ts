@@ -7,6 +7,7 @@
 import type { PlcErrorInfo, PlcStatus, WorkerResponse, IoPoint } from '@controlslab/plc-engine';
 import { Machine, type MachineDef } from '@controlslab/sim';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useExternalPlc, type ExternalPlc } from '../plc/external';
 
 const TICK_MS = 50;
 
@@ -26,6 +27,8 @@ export interface LabApi {
   loadProgram(source: string): void;
   plcCommand(type: 'start' | 'stop' | 'reset'): void;
   restart(): void;
+  /** External PLC (Modbus TCP) selector/state. */
+  external: ExternalPlc;
 }
 
 export function useLab(def: MachineDef | undefined, setup?: (m: Machine) => void): LabApi | null {
@@ -37,6 +40,9 @@ export function useLab(def: MachineDef | undefined, setup?: (m: Machine) => void
   const setupRef = useRef(setup);
   setupRef.current = setup;
   const [gen, setGen] = useState(0);
+  const external = useExternalPlc();
+  const extRef = useRef(external);
+  extRef.current = external;
 
   // (Re)create the machine when the definition changes or on restart.
   useEffect(() => {
@@ -62,7 +68,7 @@ export function useLab(def: MachineDef | undefined, setup?: (m: Machine) => void
         setPlc((p) => ({ ...p, errors: msg.errors, loaded: msg.ok, ioPoints: msg.ioPoints }));
         if (msg.ok) w.postMessage({ type: 'start' });
       } else {
-        machine.setPlcOutputs(msg.status.outputs);
+        if (!extRef.current.active) machine.setPlcOutputs(msg.status.outputs);
         setPlc((p) => ({ ...p, status: msg.status }));
       }
     };
@@ -76,8 +82,13 @@ export function useLab(def: MachineDef | undefined, setup?: (m: Machine) => void
   useEffect(() => {
     if (!machine) return;
     const id = setInterval(() => {
+      const ext = extRef.current;
       const w = workerRef.current;
-      if (w) {
+      if (ext.active) {
+        // An external PLC is in charge: sensors go out, coil writes come back.
+        ext.link.sendInputs(machine.getPlcInputs());
+        machine.setPlcOutputs(ext.link.outputs);
+      } else if (w) {
         const inputs = machine.getPlcInputs();
         const key = JSON.stringify(inputs);
         if (key !== lastInputs.current) {
@@ -91,6 +102,10 @@ export function useLab(def: MachineDef | undefined, setup?: (m: Machine) => void
     return () => clearInterval(id);
   }, [machine]);
 
+  useEffect(() => {
+    if (external.enabled) workerRef.current?.postMessage({ type: 'stop' });
+  }, [external.enabled]);
+
   const refresh = useCallback(() => setRev((r) => r + 1), []);
   const loadProgram = useCallback((source: string) => workerRef.current?.postMessage({ type: 'load', source }), []);
   const plcCommand = useCallback((type: 'start' | 'stop' | 'reset') => {
@@ -100,5 +115,5 @@ export function useLab(def: MachineDef | undefined, setup?: (m: Machine) => void
   const restart = useCallback(() => setGen((g) => g + 1), []);
 
   if (!machine) return null;
-  return { machine, rev, refresh, plc, loadProgram, plcCommand, restart };
+  return { machine, rev, refresh, plc, loadProgram, plcCommand, restart, external };
 }

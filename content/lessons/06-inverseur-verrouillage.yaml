@@ -1,0 +1,79 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: inverseur-verrouillage
+order: 6
+title:
+  fr: L'inverseur de marche et le verrouillage
+  en: The reversing starter and interlocking
+summary: Deux contacteurs, deux phases croisées, et pourquoi un contact NF peut éviter un court-circuit.
+minutes: 40
+prerequisites: [lire-schema]
+objectives:
+  - Expliquer comment l'inversion de deux phases inverse le sens de rotation d'un moteur triphasé.
+  - Lire un circuit de commande avec verrouillage électrique par contacts NF croisés.
+  - Prévoir ce qui se passe quand un verrouillage est défectueux, et le diagnostiquer avec le multimètre.
+blocks:
+  - type: text
+    md: |
+      Un moteur triphasé tourne dans le sens imposé par la **séquence des phases** (L1-L2-L3). Si on **croise deux phases**, le champ tournant
+      change de sens et le moteur tourne à l'envers. Un inverseur de marche fait ça avec **deux contacteurs** :
+
+      - "**KF** (avant) : L1 → T1, L2 → T2, L3 → T3."
+      - "**KR** (arrière) : L1 → T1, **L3 → T2, L2 → T3** — deux phases croisées."
+
+      Les deux contacteurs alimentent le même moteur. **S'ils étaient fermés en même temps, les phases L2 et L3 seraient court-circuitées** entre elles par les contacts :
+      des milliers d'ampères, fusibles qui sautent, contacts soudés, risque d'arc. D'où le **verrouillage**.
+  - type: schematic
+    machine: reversing-3w
+    caption: Inverseur câblé. KR croise L2 et L3 (fils L3B et L2B). Les contacts NF 21-22 sont dans les rangées de commande.
+    highlight: [KF, KR]
+  - type: callout
+    kind: safety
+    title: Un court-circuit de phase est un arc potentiel
+    md: Un défaut de verrouillage peut causer un arc électrique à l'intérieur de l'enveloppe. Le cadenassage et la vérification d'absence de tension restent obligatoires avant d'ouvrir un panneau d'inverseur, **même si le moteur est arrêté**.
+  - type: text
+    md: |
+      ## Le verrouillage électrique
+
+      Dans le circuit de commande à 3 fils de la leçon 4, on ajoute un contact **NF 21-22 du contacteur opposé** en série avec chaque bobine :
+
+      - "Rangée AVANT : `ARRÊT → [AVANT ∥ KF 13-14] → KR 21-22 (NF) → bobine KF → OL 95-96`"
+      - "Rangée ARRIÈRE : `ARRÊT → [ARRIÈRE ∥ KR 13-14] → KF 21-22 (NF) → bobine KR → OL 95-96`"
+
+      Quand KF colle, **son** contact NF ouvre la rangée ARRIÈRE : KR ne peut plus coller. Et inversement. Même si l'opérateur
+      appuie sur les deux boutons, un seul contacteur gagne. Pour **changer de sens** il faut donc d'abord ARRÊT (le moteur ralentit), puis l'autre bouton.
+
+      > **Freinage à contre-courant** : inverser un moteur qui tourne encore le freine violemment avant de le relancer dans l'autre sens
+      > (fort courant, contraintes mécaniques). C'est pourquoi on exige ARRÊT, et parfois une temporisation.
+  - type: callout
+    kind: field
+    title: « AVANT ne démarre pas, ARRIÈRE oui »
+    md: >-
+      Symptôme classique : la bobine KF ne claque pas. Les 120 V manquent à sa bobine. Dans la rangée AVANT, un des éléments en série est ouvert, dont le **contact NF 21-22 de KR**. Maintenez AVANT et mesurez **en travers** de chaque élément : 120 V en travers d'un contact fermé au repos = ce contact est ouvert.
+  - type: quiz
+    id: q-inv-1
+    question: Pourquoi le contact NF qui verrouille la rangée AVANT est-il celui de KR et non celui de KF?
+    choices:
+      - Parce que KF n'a pas de contact NF
+      - Pour empêcher KF de coller quand KR est déjà collé
+      - Pour que KF s'auto-maintienne
+      - Pour protéger le moteur contre les surcharges
+    answer: 1
+    explain: Chaque contacteur bloque l'autre. KR (collé) ouvre son NF dans la rangée AVANT, donc la bobine KF ne peut pas s'alimenter.
+  - type: quiz
+    id: q-inv-2
+    question: Un seul des deux contacts de verrouillage est collé fermé (défectueux). Que se passe-t-il quand on appuie sur ARRIÈRE pendant la marche avant?
+    choices:
+      - Un court-circuit immédiat entre phases
+      - "Le contacteur KR colle, ce qui ouvre le NF de KR dans la rangée AVANT et fait retomber KF : le moteur freine puis inverse"
+      - Rien ne se passe
+      - Le moteur s'arrête et ne redémarre plus
+    answer: 1
+    explain: Avec un seul verrouillage défaillant, l'autre protège encore. Pour avoir un court-circuit, il faut que les deux verrouillages soient défaillants. D'où l'importance de tester périodiquement les verrouillages, et de les doubler dans le programme quand c'est un API.
+  - type: practice
+    workorder: wo-009-inverseur-verrouillage
+    label: Dépanner l'inverseur qui ne part qu'en arrière
+  - type: practice
+    workorder: wo-011-inverseur-api
+    label: Programmer l'inverseur avec verrouillage logiciel
+references:
+  - "CSA C22.1 — Code canadien de l'électricité (moteurs et commandes), au besoin."

@@ -1,0 +1,862 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Inverseur de marche commandé par API
+# Machine définie comme données : composants (types de la bibliothèque du
+# simulateur), fils (numéros de fil), cadenassage et catalogue de défauts.
+id: reversing-plc
+version: 1
+title: {fr: Inverseur de marche commandé par API, en: PLC-controlled reversing starter}
+description:
+  fr: "Même inverseur, mais la logique est dans l'API. L'arrêt d'urgence, la surcharge (95-96) et les contacts NF croisés restent câblés en
+    série avec les bobines : le verrouillage matériel reste actif même si le programme est fautif. Au programme d'ajouter aussi le
+    verrouillage logiciel."
+  en: "Same reversing starter, but the logic lives in the PLC. The E-stop, overload (95-96) and cross-wired NC contacts stay hardwired in
+    series with the coils: the hardware interlock still protects if the program is wrong. The program should add the software interlock
+    too."
+mode: plc
+viewBox: [1300, 1000]
+components:
+  - id: SRC
+    type: source3
+    tag: Alim.
+    label: {fr: Alimentation 600 V 3φ 60 Hz, en: 600 V 3-phase 60 Hz supply}
+    params:
+      vLL: 600
+    parts:
+      main: {at: [60, 40]}
+  - id: DS
+    type: disconnect3
+    tag: SA
+    label: {fr: Sectionneur principal (cadenassable), en: Main disconnect (lockable)}
+    parts:
+      main: {at: [60, 80]}
+  - id: F1
+    type: fuse
+    tag: F1
+    params:
+      rating: 10
+    label: {fr: Fusible principal L1 (10 A), en: Main fuse L1 (10 A)}
+    parts:
+      main: {at: [60, 170], rot: 90}
+  - id: F2
+    type: fuse
+    tag: F2
+    params:
+      rating: 10
+    label: {fr: Fusible principal L2 (10 A), en: Main fuse L2 (10 A)}
+    parts:
+      main: {at: [110, 170], rot: 90}
+  - id: F3
+    type: fuse
+    tag: F3
+    params:
+      rating: 10
+    label: {fr: Fusible principal L3 (10 A), en: Main fuse L3 (10 A)}
+    parts:
+      main: {at: [160, 170], rot: 90}
+  - id: PE
+    type: ground
+    tag: MALT
+    label: {fr: Barre de mise à la terre (boîtier), en: Ground bar (enclosure)}
+    parts:
+      main: {at: [230, 130]}
+  - id: KF
+    type: contactor
+    tag: KF
+    label: {fr: Contacteur MARCHE AVANT (bobine 120 V), en: FORWARD contactor (120 V coil)}
+    parts:
+      poles: {at: [60, 300]}
+      coil: {at: [1010, 760]}
+      aux: {at: [720, 670]}
+      aux_nc: {at: [930, 830]}
+  - id: KR
+    type: contactor
+    tag: KR
+    label: {fr: Contacteur MARCHE ARRIÈRE (bobine 120 V), en: REVERSE contactor (120 V coil)}
+    parts:
+      poles: {at: [280, 300]}
+      coil: {at: [1010, 830]}
+      aux: {at: [720, 720]}
+      aux_nc: {at: [930, 760]}
+  - id: OL
+    type: overload
+    tag: OL
+    params:
+      fla: 5.2
+    label:
+      fr: Relais de surcharge thermique (réglé à 5,2 A)
+      en: Thermal overload relay (set at 5.2 A)
+    parts:
+      heaters: {at: [60, 430]}
+      nc: {at: [1090, 420]}
+      no: {at: [720, 620]}
+  - id: MTR
+    type: motor3
+    tag: M1
+    params:
+      vLL: 600
+      fla: 5.2
+    label: {fr: "Moteur 5 HP, 600 V, 5,2 A PC", en: "Motor 5 HP, 600 V, 5.2 FLA"}
+    parts:
+      main: {at: [60, 560]}
+  - id: F4
+    type: fuse
+    tag: F4
+    params:
+      rating: 1
+    label: {fr: Fusible primaire TC (1 A), en: CPT primary fuse (1 A)}
+    parts:
+      main: {at: [430, 232]}
+  - id: F5
+    type: fuse
+    tag: F5
+    params:
+      rating: 1
+    label: {fr: Fusible primaire TC (1 A), en: CPT primary fuse (1 A)}
+    parts:
+      main: {at: [430, 252]}
+  - id: XF
+    type: transformer
+    tag: TC
+    params:
+      ratio: 5
+    label:
+      fr: Transformateur de commande 600/120 V, 250 VA
+      en: Control transformer 600/120 V, 250 VA
+    parts:
+      main: {at: [580, 260]}
+  - id: F6
+    type: fuse
+    tag: F6
+    params:
+      rating: 2
+    label: {fr: Fusible secondaire (2 A), en: Secondary fuse (2 A)}
+    parts:
+      main: {at: [580, 400]}
+  - id: GX
+    type: ground
+    tag: X2
+    label: {fr: Mise à la terre du secondaire X2, en: X2 secondary bond}
+    parts:
+      main: {at: [700, 330]}
+  - id: TB1
+    type: terminal
+    tag: "1"
+    parts:
+      main: {at: [700, 400]}
+  - id: TB0
+    type: terminal
+    tag: X2
+    parts:
+      main: {at: [1150, 330]}
+  - id: J1T
+    type: terminal
+    parts:
+      main: {at: [700, 400]}
+  - id: PB_FWD
+    type: pushbutton
+    tag: PB2
+    params:
+      contact: NO
+      kind: momentary
+      color: green
+    label: {fr: Bouton MARCHE AVANT (NO), en: FORWARD button (NO)}
+    parts:
+      main: {at: [720, 470]}
+  - id: I0
+    type: plc_input
+    tag: "%IX0.0"
+    params:
+      address: "%IX0.0"
+    label: {fr: "Entrée API : MARCHE AVANT", en: FORWARD}
+    parts:
+      main: {at: [1000, 470]}
+  - id: J10
+    type: terminal
+    parts:
+      main: {at: [700, 470]}
+  - id: J00
+    type: terminal
+    parts:
+      main: {at: [1250, 470]}
+  - id: PB_REV
+    type: pushbutton
+    tag: PB3
+    params:
+      contact: NO
+      kind: momentary
+      color: green
+    label: {fr: Bouton MARCHE ARRIÈRE (NO), en: REVERSE button (NO)}
+    parts:
+      main: {at: [720, 520]}
+  - id: I1
+    type: plc_input
+    tag: "%IX0.1"
+    params:
+      address: "%IX0.1"
+    label: {fr: "Entrée API : MARCHE ARRIÈRE", en: REVERSE}
+    parts:
+      main: {at: [1000, 520]}
+  - id: J11
+    type: terminal
+    parts:
+      main: {at: [700, 520]}
+  - id: J01
+    type: terminal
+    parts:
+      main: {at: [1250, 520]}
+  - id: PB_STOP
+    type: pushbutton
+    tag: PB1
+    params:
+      contact: NC
+      kind: momentary
+      color: red
+    label: {fr: Bouton ARRÊT (NF), en: STOP button (NC)}
+    parts:
+      main: {at: [720, 570]}
+  - id: I2
+    type: plc_input
+    tag: "%IX0.2"
+    params:
+      address: "%IX0.2"
+    label: {fr: "Entrée API : ARRÊT (NF)", en: STOP (NC)}
+    parts:
+      main: {at: [1000, 570]}
+  - id: J12
+    type: terminal
+    parts:
+      main: {at: [700, 570]}
+  - id: J02
+    type: terminal
+    parts:
+      main: {at: [1250, 570]}
+  - id: I3
+    type: plc_input
+    tag: "%IX0.3"
+    params:
+      address: "%IX0.3"
+    label: {fr: "Entrée API : surcharge déclenchée (97-98)", en: overload tripped (97-98)}
+    parts:
+      main: {at: [1000, 620]}
+  - id: J13
+    type: terminal
+    parts:
+      main: {at: [700, 620]}
+  - id: J03
+    type: terminal
+    parts:
+      main: {at: [1250, 620]}
+  - id: I4
+    type: plc_input
+    tag: "%IX0.4"
+    params:
+      address: "%IX0.4"
+    label:
+      fr: "Entrée API : retour contacteur AVANT (13-14)"
+      en: FORWARD feedback (13-14)
+    parts:
+      main: {at: [1000, 670]}
+  - id: J14
+    type: terminal
+    parts:
+      main: {at: [700, 670]}
+  - id: J04
+    type: terminal
+    parts:
+      main: {at: [1250, 670]}
+  - id: I5
+    type: plc_input
+    tag: "%IX0.5"
+    params:
+      address: "%IX0.5"
+    label:
+      fr: "Entrée API : retour contacteur ARRIÈRE (13-14)"
+      en: REVERSE feedback (13-14)
+    parts:
+      main: {at: [1000, 720]}
+  - id: J15
+    type: terminal
+    parts:
+      main: {at: [700, 720]}
+  - id: J05
+    type: terminal
+    parts:
+      main: {at: [1250, 720]}
+  - id: PB_ES
+    type: pushbutton
+    tag: AU
+    params:
+      contact: NC
+      kind: mushroom
+      color: red
+    label:
+      fr: Arrêt d'urgence (NF, à accrochage) — câblé en série avec les bobines
+      en: Emergency stop (NC, latching) — hardwired in series with the coils
+    parts:
+      main: {at: [720, 790]}
+  - id: IE
+    type: plc_input
+    tag: "%IX0.6"
+    params:
+      address: "%IX0.6"
+    label: {fr: "Entrée API : arrêt d'urgence OK", en: E-stop healthy}
+    parts:
+      main: {at: [1130, 790]}
+  - id: J2E
+    type: terminal
+    tag: "2"
+    parts:
+      main: {at: [810, 790]}
+  - id: Q0
+    type: plc_output
+    tag: "%QX0.0"
+    params:
+      address: "%QX0.0"
+    label: {fr: "Sortie relais API : bobine KF", en: "PLC relay output: KF coil"}
+    parts:
+      main: {at: [840, 760]}
+  - id: Q1
+    type: plc_output
+    tag: "%QX0.1"
+    params:
+      address: "%QX0.1"
+    label: {fr: "Sortie relais API : bobine KR", en: "PLC relay output: KR coil"}
+    parts:
+      main: {at: [840, 830]}
+  - id: J5F
+    type: terminal
+    tag: "5"
+    parts:
+      main: {at: [1090, 760]}
+  - id: J5R
+    type: terminal
+    parts:
+      main: {at: [1090, 830]}
+  - id: J0E
+    type: terminal
+    parts:
+      main: {at: [1250, 790]}
+  - id: LT_F
+    type: lamp
+    tag: LF
+    params:
+      color: green
+    label: {fr: Voyant AVANT (vert), en: FORWARD light (green)}
+    parts:
+      main: {at: [900, 890]}
+  - id: LT_R
+    type: lamp
+    tag: LR
+    params:
+      color: amber
+    label: {fr: Voyant ARRIÈRE (ambre), en: REVERSE light (amber)}
+    parts:
+      main: {at: [1010, 890]}
+  - id: Q2
+    type: plc_output
+    tag: "%QX0.2"
+    params:
+      address: "%QX0.2"
+    label: {fr: "Sortie relais API : voyant AVANT", en: "PLC relay output: FORWARD light"}
+    parts:
+      main: {at: [780, 890]}
+  - id: Q3
+    type: plc_output
+    tag: "%QX0.3"
+    params:
+      address: "%QX0.3"
+    label: {fr: "Sortie relais API : voyant ARRIÈRE", en: "PLC relay output: REVERSE light"}
+    parts:
+      main: {at: [890, 940]}
+  - id: J1L
+    type: terminal
+    parts:
+      main: {at: [700, 890]}
+  - id: J0L
+    type: terminal
+    parts:
+      main: {at: [1250, 890]}
+wires:
+  - id: W1
+    label: L1
+    from: SRC:L1
+    to: DS:L1
+  - id: W2
+    label: L2
+    from: SRC:L2
+    to: DS:L2
+  - id: W3
+    label: L3
+    from: SRC:L3
+    to: DS:L3
+  - id: W4
+    label: L1A
+    from: DS:T1
+    to: F1:1
+  - id: W5
+    label: L2A
+    from: DS:T2
+    to: F2:1
+  - id: W6
+    label: L3A
+    from: DS:T3
+    to: F3:1
+  - id: W7
+    label: L1B
+    from: F1:2
+    to: KF:L1
+  - id: W8
+    label: L2B
+    from: F2:2
+    to: KF:L2
+  - id: W9
+    label: L3B
+    from: F3:2
+    to: KF:L3
+  - id: W10
+    label: L1B
+    from: F1:2
+    to: KR:L1
+    via: [[60, 266], [280, 266]]
+    junctions: [[60, 266]]
+  - id: W11
+    label: L3B
+    from: F3:2
+    to: KR:L2
+    via: [[160, 276], [330, 276]]
+    junctions: [[160, 276]]
+  - id: W12
+    label: L2B
+    from: F2:2
+    to: KR:L3
+    via: [[110, 286], [380, 286]]
+    junctions: [[110, 286]]
+  - id: W13
+    label: T1A
+    from: KF:T1
+    to: OL:L1
+  - id: W14
+    label: T2A
+    from: KF:T2
+    to: OL:L2
+  - id: W15
+    label: T3A
+    from: KF:T3
+    to: OL:L3
+  - id: W16
+    label: T1A
+    from: KR:T1
+    to: OL:L1
+    via: [[280, 390], [60, 390]]
+    junctions: [[60, 390]]
+  - id: W17
+    label: T2A
+    from: KR:T2
+    to: OL:L2
+    via: [[330, 400], [110, 400]]
+    junctions: [[110, 400]]
+  - id: W18
+    label: T3A
+    from: KR:T3
+    to: OL:L3
+    via: [[380, 410], [160, 410]]
+    junctions: [[160, 410]]
+  - id: W19
+    label: T1
+    from: OL:T1
+    to: MTR:T1
+  - id: W20
+    label: T2
+    from: OL:T2
+    to: MTR:T2
+  - id: W21
+    label: T3
+    from: OL:T3
+    to: MTR:T3
+  - id: W22
+    label: L1B
+    from: F1:2
+    to: F4:1
+    via: [[60, 232]]
+    junctions: [[60, 232]]
+  - id: W23
+    label: L3B
+    from: F3:2
+    to: F5:1
+    via: [[160, 252]]
+    junctions: [[160, 252]]
+  - id: W24
+    label: H1
+    from: F4:2
+    to: XF:H1
+    via: [[580, 232]]
+  - id: W25
+    label: H2
+    from: F5:2
+    to: XF:H2
+    via: [[640, 252]]
+  - id: W26
+    label: X1
+    from: XF:X1
+    to: F6:1
+  - id: W27
+    label: X2
+    from: XF:X2
+    to: GX:G
+  - id: W28
+    label: X2
+    from: GX:G
+    to: TB0:T
+  - id: W29
+    label: "1"
+    from: F6:2
+    to: TB1:T
+    via: [[700, 400]]
+  - id: W30
+    label: "1"
+    from: TB1:T
+    to: J1T:T
+  - id: W31
+    label: "1"
+    from: J10:T
+    to: PB_FWD:1
+  - id: W32
+    label: "10"
+    from: PB_FWD:2
+    to: I0:IN
+  - id: W33
+    label: X2
+    from: I0:COM
+    to: J00:T
+  - id: W34
+    label: "1"
+    from: J11:T
+    to: PB_REV:1
+  - id: W35
+    label: "11"
+    from: PB_REV:2
+    to: I1:IN
+  - id: W36
+    label: X2
+    from: I1:COM
+    to: J01:T
+  - id: W37
+    label: "1"
+    from: J12:T
+    to: PB_STOP:1
+  - id: W38
+    label: "12"
+    from: PB_STOP:2
+    to: I2:IN
+  - id: W39
+    label: X2
+    from: I2:COM
+    to: J02:T
+  - id: W40
+    label: "1"
+    from: J13:T
+    to: OL:97
+  - id: W41
+    label: "13"
+    from: OL:98
+    to: I3:IN
+  - id: W42
+    label: X2
+    from: I3:COM
+    to: J03:T
+  - id: W43
+    label: "1"
+    from: J14:T
+    to: KF:13
+  - id: W44
+    label: "14"
+    from: KF:14
+    to: I4:IN
+  - id: W45
+    label: X2
+    from: I4:COM
+    to: J04:T
+  - id: W46
+    label: "1"
+    from: J15:T
+    to: KR:13
+  - id: W47
+    label: "15"
+    from: KR:14
+    to: I5:IN
+  - id: W48
+    label: X2
+    from: I5:COM
+    to: J05:T
+  - id: W49
+    label: "1"
+    from: J10:T
+    to: J11:T
+  - id: W50
+    label: X2
+    from: J00:T
+    to: J01:T
+  - id: W51
+    label: "1"
+    from: J11:T
+    to: J12:T
+  - id: W52
+    label: X2
+    from: J01:T
+    to: J02:T
+  - id: W53
+    label: "1"
+    from: J12:T
+    to: J13:T
+  - id: W54
+    label: X2
+    from: J02:T
+    to: J03:T
+  - id: W55
+    label: "1"
+    from: J13:T
+    to: J14:T
+  - id: W56
+    label: X2
+    from: J03:T
+    to: J04:T
+  - id: W57
+    label: "1"
+    from: J14:T
+    to: J15:T
+  - id: W58
+    label: X2
+    from: J04:T
+    to: J05:T
+  - id: W59
+    label: "1"
+    from: J1T:T
+    to: J10:T
+  - id: W60
+    label: X2
+    from: TB0:T
+    to: J00:T
+  - id: W61
+    label: "1"
+    from: J15:T
+    to: PB_ES:1
+    via: [[700, 790]]
+  - id: W62
+    label: "2"
+    from: PB_ES:2
+    to: J2E:T
+  - id: W63
+    label: "2"
+    from: J2E:T
+    to: Q0:C
+    via: [[810, 760]]
+  - id: W64
+    label: "2"
+    from: J2E:T
+    to: Q1:C
+    via: [[810, 830]]
+  - id: W65
+    label: 3F
+    from: Q0:O
+    to: KR:21
+  - id: W66
+    label: 4F
+    from: KR:22
+    to: KF:A1
+  - id: W67
+    label: "5"
+    from: KF:A2
+    to: J5F:T
+  - id: W68
+    label: 3R
+    from: Q1:O
+    to: KF:21
+  - id: W69
+    label: 4R
+    from: KF:22
+    to: KR:A1
+  - id: W70
+    label: "5"
+    from: KR:A2
+    to: J5R:T
+  - id: W71
+    label: "5"
+    from: J5R:T
+    to: J5F:T
+  - id: W72
+    label: "2"
+    from: J2E:T
+    to: IE:IN
+  - id: W73
+    label: X2
+    from: IE:COM
+    to: J0E:T
+  - id: W74
+    label: "5"
+    from: J5F:T
+    to: OL:95
+  - id: W75
+    label: X2
+    from: OL:96
+    to: TB0:T
+  - id: W76
+    label: X2
+    from: J05:T
+    to: J0E:T
+  - id: W77
+    label: "1"
+    from: J15:T
+    to: J1L:T
+  - id: W78
+    label: "1"
+    from: J1L:T
+    to: Q2:C
+  - id: W79
+    label: "6"
+    from: Q2:O
+    to: LT_F:X1
+  - id: W80
+    label: X2
+    from: LT_F:X2
+    to: J0L:T
+  - id: W81
+    label: "1"
+    from: J1L:T
+    to: Q3:C
+    via: [[700, 940]]
+  - id: W82
+    label: "7"
+    from: Q3:O
+    to: LT_R:X1
+    via: [[960, 940], [960, 890]]
+  - id: W83
+    label: X2
+    from: LT_R:X2
+    to: J0L:T
+  - id: W84
+    label: X2
+    from: J05:T
+    to: J0L:T
+loto:
+  isolators: [DS]
+  knownLive: [[DS:L1, DS:L2], [DS:L2, DS:L3], [DS:L1, DS:L3]]
+  verifyPoints: [[DS:T1, DS:T2], [DS:T2, DS:T3], [DS:T1, DS:T3], [DS:T1, PE:G], [DS:T2, PE:G], [DS:T3, PE:G], [XF:X1, XF:X2]]
+  tryStart: PB_FWD
+faults:
+  - id: ol_open
+    target: OL
+    kind: nc_open
+    label:
+      fr: Contact 95-96 du relais de surcharge ouvert (défectueux)
+      en: Overload 95-96 contact open (defective)
+  - id: kf_welded
+    target: KF
+    kind: welded
+    label: {fr: Contacts du contacteur AVANT (KF) soudés, en: FORWARD contactor (KF) contacts welded}
+  - id: kr_welded
+    target: KR
+    kind: welded
+    label: {fr: Contacts du contacteur ARRIÈRE (KR) soudés, en: REVERSE contactor (KR) contacts welded}
+  - id: kf_coil_open
+    target: KF
+    kind: coil_open
+    label: {fr: Bobine du contacteur AVANT (KF) ouverte, en: FORWARD contactor (KF) coil open}
+  - id: kr_coil_open
+    target: KR
+    kind: coil_open
+    label: {fr: Bobine du contacteur ARRIÈRE (KR) ouverte, en: REVERSE contactor (KR) coil open}
+  - id: kr_nc_open
+    target: KR
+    kind: aux_nc_open
+    label:
+      fr: Contact NF 21-22 de KR ouvert (AVANT impossible)
+      en: KR NC 21-22 open (FORWARD impossible)
+  - id: kf_nc_stuck
+    target: KF
+    kind: aux_nc_stuck
+    label:
+      fr: Contact NF 21-22 de KF collé fermé (verrouillage inopérant)
+      en: KF NC 21-22 stuck closed (interlock defeated)
+  - id: kr_nc_stuck
+    target: KR
+    kind: aux_nc_stuck
+    label:
+      fr: Contact NF 21-22 de KR collé fermé (verrouillage inopérant)
+      en: KR NC 21-22 stuck closed (interlock defeated)
+  - id: f6_blown
+    target: F6
+    kind: blown
+    label: {fr: Fusible secondaire F6 grillé, en: Secondary fuse F6 blown}
+  - id: f4_blown
+    target: F4
+    kind: blown
+    label:
+      fr: Fusible primaire F4 du transformateur grillé
+      en: CPT primary fuse F4 blown
+  - id: f2_blown
+    target: F2
+    kind: blown
+    label:
+      fr: Fusible principal F2 grillé (marche monophasée)
+      en: Main fuse F2 blown (single phasing)
+  - id: motor_winding
+    target: MTR
+    kind: winding_open
+    label: {fr: Enroulement du moteur ouvert (phase T2), en: Motor winding open (T2)}
+plc:
+  io:
+    - address: "%IX0.0"
+      component: I0
+      label: {fr: MARCHE AVANT (NO), en: FORWARD (NO)}
+    - address: "%IX0.1"
+      component: I1
+      label: {fr: MARCHE ARRIÈRE (NO), en: REVERSE (NO)}
+    - address: "%IX0.2"
+      component: I2
+      label: {fr: "ARRÊT (NF : vrai = pas appuyé)", en: "STOP (NC: true = not pressed)"}
+    - address: "%IX0.3"
+      component: I3
+      label: {fr: Surcharge déclenchée, en: Overload tripped}
+    - address: "%IX0.4"
+      component: I4
+      label: {fr: Retour KF (13-14), en: KF feedback (13-14)}
+    - address: "%IX0.5"
+      component: I5
+      label: {fr: Retour KR (13-14), en: KR feedback (13-14)}
+    - address: "%IX0.6"
+      component: IE
+      label: {fr: Arrêt d'urgence OK, en: E-stop healthy}
+    - address: "%QX0.0"
+      component: Q0
+      label: {fr: Bobine KF (avant), en: KF coil (forward)}
+    - address: "%QX0.1"
+      component: Q1
+      label: {fr: Bobine KR (arrière), en: KR coil (reverse)}
+    - address: "%QX0.2"
+      component: Q2
+      label: {fr: Voyant AVANT, en: FORWARD light}
+    - address: "%QX0.3"
+      component: Q3
+      label: {fr: Voyant ARRIÈRE, en: REVERSE light}
+  starterProgram: |
+    PROGRAM Main
+    VAR
+        Avant        AT %IX0.0 : BOOL;   (* MARCHE AVANT, NO *)
+        Arriere      AT %IX0.1 : BOOL;   (* MARCHE ARRIÈRE, NO *)
+        Arret        AT %IX0.2 : BOOL;   (* ARRÊT, NF : TRUE quand non appuyé *)
+        Surcharge    AT %IX0.3 : BOOL;   (* surcharge déclenchée (97-98) *)
+        RetourKF     AT %IX0.4 : BOOL;   (* contact auxiliaire KF 13-14 *)
+        RetourKR     AT %IX0.5 : BOOL;   (* contact auxiliaire KR 13-14 *)
+        AU_OK        AT %IX0.6 : BOOL;   (* arrêt d'urgence relâché *)
+        BobineKF     AT %QX0.0 : BOOL;   (* bobine du contacteur AVANT *)
+        BobineKR     AT %QX0.1 : BOOL;   (* bobine du contacteur ARRIÈRE *)
+        VoyantAvant  AT %QX0.2 : BOOL;
+        VoyantArriere AT %QX0.3 : BOOL;
+    END_VAR
+
+    (* À compléter : auto-maintien des deux sens + verrouillage logiciel *)
+
+    END_PROGRAM
+notes:
+  - {text: {fr: CIRCUIT DE PUISSANCE 600 V, en: POWER CIRCUIT 600 V}, at: [300, 30], size: 13}
+  - {text: {fr: CIRCUIT DE COMMANDE 120 V (API), en: CONTROL CIRCUIT 120 V (PLC)}, at: [770, 392], size: 13}

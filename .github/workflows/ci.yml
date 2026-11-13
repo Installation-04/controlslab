@@ -32,6 +32,9 @@ jobs:
           sleep 3
           node apps/web/e2e/smoke.mjs
           node apps/web/e2e/cell.mjs
+          node apps/web/e2e/ladder.mjs
+          node apps/web/e2e/machines.mjs
+          node apps/web/e2e/modbus.mjs
 
   docker:
     runs-on: ubuntu-latest

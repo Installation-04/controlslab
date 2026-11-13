@@ -1,0 +1,74 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: pince-ohm
+order: 8
+title:
+  fr: La pince ampèremétrique et les circuits en parallèle
+  en: The clamp meter and parallel circuits
+summary: Mesurer un courant sans ouvrir le circuit, et vérifier la loi d'Ohm sur un banc d'éclairage.
+minutes: 30
+prerequisites: [multimetre]
+objectives:
+  - Utiliser une pince ampèremétrique en sécurité et lire un courant.
+  - Prévoir les courants d'un circuit en parallèle à partir des puissances.
+  - Reconnaître le symptôme d'un neutre ouvert.
+blocks:
+  - type: text
+    md: |
+      Un **ampèremètre** classique se branche **en série** : il faut ouvrir le circuit. Une **pince ampèremétrique** mesure le courant par son
+      champ magnétique, **en l'entourant** : sans contact, circuit sous tension, sans l'ouvrir. C'est l'outil de choix pour les moteurs et les charges.
+
+      Règles de terrain : **un seul conducteur** dans la pince (deux fils de même circuit s'annulent et la pince lit ≈ 0 A), cote CAT de la pince adaptée au circuit,
+      et gamme de courant suffisante.
+  - type: schematic
+    machine: bench-lighting
+    caption: Banc d'éclairage 120 V — trois branches en parallèle derrière un fusible de 15 A.
+  - type: callout
+    kind: field
+    title: Dans le laboratoire
+    md: Dans le multimètre virtuel, passez en mode **A~** puis **cliquez sur un fil** du schéma pour y poser la pince. Le courant s'affiche tout de suite, sans rien débrancher.
+  - type: calc
+    id: calc-ohm-bench
+    kind: ohm
+    preset: { V: 120, R: 9.6 }
+  - type: text
+    md: |
+      ## Prévoir avant de mesurer
+
+      - "Lampe de 60 W à 120 V : I = P ÷ V = **0,5 A**; R = V ÷ I = **240 Ω**."
+      - "Radiateur de 1 500 W : I = **12,5 A**; R = **9,6 Ω**."
+      - "Les trois branches sont en **parallèle** : même tension (120 V), les **courants s'additionnent** : 0,5 + 0,5 + 12,5 = **13,5 A** dans le fusible."
+
+      Un fusible de 15 A est donc presque à sa limite : ajouter une charge de 300 W le ferait sauter (ou, pire, un disjoncteur trop gros ne protégerait plus le câblage).
+
+      ## Le neutre ouvert
+
+      Si le conducteur neutre d'une branche est coupé, la lampe est éteinte et pourtant **le côté neutre de la lampe est à 120 V** par rapport à la terre :
+      il est relié à la phase *à travers la lampe*. Mesurer seulement « en travers de la lampe » donne 0 V et trompe. **Mesurez chaque borne par rapport à la terre.**
+  - type: quiz
+    id: q-pince-1
+    question: Vous placez la pince autour des deux fils (aller et retour) d'une lampe. Que lit-elle?
+    choices:
+      - Le double du courant
+      - Environ 0 A, parce que les champs magnétiques s'annulent
+      - Le courant normal
+      - Une erreur de surcharge
+    answer: 1
+    explain: >-
+      Les courants aller et retour sont égaux et opposés : leurs champs s'annulent. La pince doit entourer UN SEUL conducteur.
+  - type: quiz
+    id: q-pince-2
+    question: Les trois branches d'un circuit en parallèle tirent 0,5 A, 0,5 A et 12,5 A. Quel courant lit-on dans le conducteur commun?
+    choices:
+      - 0,5 A
+      - 12,5 A
+      - 13,5 A
+      - 1,0 A
+    answer: 2
+  - type: practice
+    workorder: wo-007-banc-eclairage
+    label: Mesurer les courants du banc d'éclairage
+  - type: practice
+    workorder: wo-008-lampe-neutre
+    label: Dépanner la lampe qui ne s'allume pas (neutre ouvert)
+references:
+  - Fiche technique de votre pince ampèremétrique (cote CAT, gamme, précision).

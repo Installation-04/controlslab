@@ -9,6 +9,7 @@
   "exports": { ".": "./src/index.ts" },
   "dependencies": {
     "@controlslab/factory": "*",
+    "@controlslab/ladder": "*",
     "@controlslab/plc-engine": "*",
     "@controlslab/sim": "*",
     "yaml": "^2.8.0",

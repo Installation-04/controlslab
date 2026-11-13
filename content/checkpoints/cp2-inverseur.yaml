@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: cp2-inverseur
+title: Point de contrôle 2 — Dépannage de l'inverseur de marche
+machine: reversing-3w
+intro: |
+  Un défaut a été introduit au hasard sur l'**inverseur de marche** (deux contacteurs, verrouillage électrique). **Aucun indice** n'est offert.
+  Trouvez la cause par vos mesures, **diagnostiquez**, cadenassez, réparez, puis remettez en service. Note de passage : 80 %.
+pool: [kr_nc_open, kf_coil_open, kr_coil_open, f6_blown, f4_blown, ol_open]
+timeLimitMinutes: 35
+passScore: 80
+weights: { diagnosis: 40, loto: 30, efficiency: 20, restore: 10 }
+efficiency: { freeMeasurements: 14, perExtraMeasurement: 1, perWrongPart: 5 }

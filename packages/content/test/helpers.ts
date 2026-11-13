@@ -40,15 +40,15 @@ export function tap(m: Machine, id: string, ms = 100) {
 /** Correct LOTO up to "work allowed". */
 export function lockOut(m: Machine) {
   m.acknowledge('notify');
-  tap(m, 'PB_STOP');
+  if (m.def.components.some((c) => c.id === 'PB_STOP')) tap(m, 'PB_STOP');
   m.run(5000);
   m.setDisconnect('DS', false);
   m.applyLock('DS');
   m.acknowledge('stored_energy_checked');
-  tap(m, 'PB_START');
-  m.measure('DS:L1', 'DS:L2', 'VAC');
+  tap(m, m.def.loto.tryStart ?? 'PB_START');
+  m.measure(m.def.loto.knownLive[0]![0], m.def.loto.knownLive[0]![1], 'VAC');
   for (const [a, b] of m.def.loto.verifyPoints) m.measure(a, b, 'VAC');
-  m.measure('DS:L1', 'DS:L2', 'VAC');
+  m.measure(m.def.loto.knownLive[0]![0], m.def.loto.knownLive[0]![1], 'VAC');
 }
 
 export function restore(m: Machine) {

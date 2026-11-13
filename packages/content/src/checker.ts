@@ -92,6 +92,12 @@ export function checkObjective(o: Objective, input: CheckInput): ObjectiveResult
       );
       return ok(hit);
     }
+    case 'clamp': {
+      const wire = machine.def.wires.find((w) => (w.from === o.from && w.to === o.to) || (w.from === o.to && w.to === o.from));
+      if (!wire) return ok(false, `fil introuvable: ${o.from} → ${o.to}`);
+      const hit = measures(machine.events).some((r) => r.mode === 'AAC' && r.a === wire.id && (o.min === undefined || r.value >= o.min) && (o.max === undefined || r.value <= o.max));
+      return ok(hit);
+    }
     case 'diagnosis':
       return ok(machine.events.some((e) => e.type === 'diagnosis' && e.correct));
     case 'state':

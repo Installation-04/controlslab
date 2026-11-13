@@ -15,10 +15,13 @@ COPY packages/plc-engine/package.json packages/plc-engine/
 COPY packages/sim/package.json packages/sim/
 COPY packages/factory/package.json packages/factory/
 COPY packages/content/package.json packages/content/
+COPY packages/ladder/package.json packages/ladder/
+COPY packages/connector/package.json packages/connector/
 RUN npm ci --no-audit --no-fund
 
 # Then the sources + content (YAML is compiled into the bundle).
 COPY tsconfig.base.json tsconfig.json ./
+COPY scripts scripts
 COPY packages packages
 COPY apps apps
 COPY content content

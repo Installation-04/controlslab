@@ -40,6 +40,23 @@ plc:
     (* À compléter : démarreur + compteur de lot + colonne lumineuse *)
 
     END_PROGRAM
+  ldStarter:
+    v: 1
+    name: Main
+    vars:
+      - { name: Marche, type: BOOL, address: '%IX0.0' }
+      - { name: Arret, type: BOOL, address: '%IX0.1' }
+      - { name: Surcharge, type: BOOL, address: '%IX0.2' }
+      - { name: AU_OK, type: BOOL, address: '%IX0.3' }
+      - { name: RetourM, type: BOOL, address: '%IX0.4' }
+      - { name: BobineM, type: BOOL, address: '%QX0.0' }
+      - { name: VoyantMarche, type: BOOL, address: '%QX0.1' }
+      - { name: Detecteur, type: BOOL, address: '%IX1.0' }
+      - { name: Reinit, type: BOOL, address: '%IX1.1' }
+      - { name: Vert, type: BOOL, address: '%QX1.0' }
+      - { name: Ambre, type: BOOL, address: '%QX1.1' }
+      - { name: Rouge, type: BOOL, address: '%QX1.2' }
+    rungs: []
   tests:
     - id: t-lot
       title: S'arrête après 3 boîtes, colonne ambre

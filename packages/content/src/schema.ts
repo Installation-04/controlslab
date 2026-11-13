@@ -3,6 +3,7 @@
  * Content schemas (zod). The same schemas validate bundled content at test
  * time and community content imported in the browser.
  */
+import { LdProgramSchema } from '@controlslab/ladder';
 import { z } from 'zod';
 
 /** French string, or { fr, en? }. */
@@ -89,6 +90,8 @@ export const Objective = z.discriminatedUnion('type', [
     symmetric: z.boolean().default(true),
     label: Localized,
   }),
+  /** Clamp-meter reading on the wire running from `from` to `to` (terminal refs as in the machine file). */
+  z.object({ type: z.literal('clamp'), from: z.string(), to: z.string(), min: z.number().optional(), max: z.number().optional(), label: Localized }),
   z.object({ type: z.literal('diagnosis'), label: Localized }),
   z.object({
     type: z.literal('state'),
@@ -130,7 +133,16 @@ export const WorkOrder = z.object({
   /** Hints may be disabled (checkpoints). */
   hints: z.array(Localized).default([]),
   /** Learner must write a PLC program (machine.mode = plc). */
-  plc: z.object({ starter: z.string().optional(), tests: z.array(PlcTest).default([]) }).optional(),
+  plc: z
+    .object({
+      starter: z.string().optional(),
+      /** Ladder starting program; when present the learner may use Ladder. */
+      ldStarter: LdProgramSchema.optional(),
+      languages: z.array(z.enum(['st', 'ld'])).optional(),
+      defaultLang: z.enum(['st', 'ld']).optional(),
+      tests: z.array(PlcTest).default([]),
+    })
+    .optional(),
   objectives: z.array(Objective).min(1),
   /** Whether a diagnosis must be recorded (pick-the-fault step). */
   requiresDiagnosis: z.boolean().default(false),
@@ -206,7 +218,13 @@ export const Scenario = z.object({
   hints: z.array(Localized).default([]),
   /** Learner may add/move/delete devices (non-locked ones). */
   editable: z.boolean().default(true),
-  plc: z.object({ starter: z.string(), tests: z.array(CellTest).min(1) }),
+  plc: z.object({
+    starter: z.string(),
+    ldStarter: LdProgramSchema.optional(),
+    languages: z.array(z.enum(['st', 'ld'])).optional(),
+    defaultLang: z.enum(['st', 'ld']).optional(),
+    tests: z.array(CellTest).min(1),
+  }),
   objectives: z.array(z.object({ type: z.literal('plc_test'), test: Id, label: Localized })).min(1),
 });
 export type Scenario = z.infer<typeof Scenario>;
