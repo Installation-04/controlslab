@@ -42,6 +42,23 @@ plc:
     (* À compléter : démarreur + logique de tri *)
 
     END_PROGRAM
+  ldStarter:
+    v: 1
+    name: Main
+    vars:
+      - { name: Marche, type: BOOL, address: '%IX0.0' }
+      - { name: Arret, type: BOOL, address: '%IX0.1' }
+      - { name: Surcharge, type: BOOL, address: '%IX0.2' }
+      - { name: AU_OK, type: BOOL, address: '%IX0.3' }
+      - { name: RetourM, type: BOOL, address: '%IX0.4' }
+      - { name: BobineM, type: BOOL, address: '%QX0.0' }
+      - { name: VoyantMarche, type: BOOL, address: '%QX0.1' }
+      - { name: DetMetal, type: BOOL, address: '%IX1.0' }
+      - { name: DevantVerin, type: BOOL, address: '%IX1.1' }
+      - { name: VerinRentre, type: BOOL, address: '%IX1.2' }
+      - { name: VerinSorti, type: BOOL, address: '%IX1.3' }
+      - { name: Sortir, type: BOOL, address: '%QX1.0' }
+    rungs: []
   tests:
     - id: t-tri
       title: Les boîtes métalliques vont au bac latéral, le plastique au bout

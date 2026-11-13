@@ -11,12 +11,13 @@
 
 - **Moteur d'API en Structured Text** (IEC 61131-3) : parseur, vérification de types, cycle de balayage fixe, temporisateurs `TON`/`TOF`/`TP`, compteurs `CTU`/`CTD`/`CTUD`, détection de front `R_TRIG`/`F_TRIG`, bascules `SR`/`RS`. S'exécute dans un *Web Worker*.
 - **Machine virtuelle** : démarreur direct 3 fils (600 V, commande 120 V), en version **câblée** et en version **commandée par API**. Schéma SVG animé, multimètre virtuel (V~, Ω, continuité), défauts injectables (contact de surcharge ouvert, contacteur soudé, fusible grillé, bobine ouverte…), séquence de **cadenassage** avec vérification *vivant – mort – vivant*.
+- **Éditeur Ladder** (LD) en plus du ST : contacts NO/NF/front, branches parallèles, bobines (normale, inversée, S/R), temporisateurs et compteurs, avec **écoulement de puissance en direct** pendant que l'automate tourne. Le Ladder est transcrit en ST lisible (visible dans l'éditeur) et exécuté par le même moteur.
 - **Cellule 3D** (three.js) : glissez-déposez un **panneau électrique**, des **convoyeurs**, un distributeur de boîtes, des **capteurs** (photoélectrique, inductif), un **vérin pousseur**, des boutons, voyants, colonnes lumineuses et bacs dans la scène. Chaque appareil se lie à une **adresse d'E/S** (`%IX1.0`, `%QX1.0`…) dans un inspecteur de propriétés, puis le programme ST pilote le tout. Double-clic sur le panneau pour l'ouvrir : même schéma interactif, multimètre et cadenassage que le laboratoire. **3 scénarios** inclus (convoyeur de base, lot de 3 boîtes, tri métal/plastique) + une **cellule libre**.
 - **5 leçons en français québécois** : loi d'Ohm · multimètre · cadenassage · lecture de schéma · premier programme ST (auto-maintien).
 - **Bons de travail** avec vérificateur automatique et **point de contrôle noté** (sans indices, défaut tiré au hasard).
 - **Progression locale** dans le navigateur, **dossier imprimable**, export/import (sauvegarde JSON, programmes `.st`, contenu communautaire YAML).
 
-Prévu ensuite : éditeur *Ladder*, pont Modbus TCP vers des automates réels ou logiciels, éditeur de câblage de panneau (glisser-déposer des composants), tableaux de bord pour formateurs.
+Prévu ensuite : pont Modbus TCP vers des automates réels ou logiciels, éditeur de câblage de panneau (glisser-déposer des composants), tableaux de bord pour formateurs.
 
 ## Démarrage rapide
 

@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import type { Machine, MachineDef } from '@controlslab/sim';
-import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { useT } from '../i18n';
-import { actions, useProgress } from '../store/progress';
-import { checkStSource, download, pickFile } from '../store/transfer';
+import { usePlcProgram, type Starters } from '../store/plc';
 import { PanelWorkbench } from './PanelWorkbench';
 import { DiagnosisPanel, FaultsPanel, PlcStatusPanel } from './Panels';
-import { StEditor } from './StEditor';
+import { PlcEditor } from './PlcEditor';
 import { useLab, type LabApi } from './useLab';
 
 export interface LabProps {
@@ -17,7 +16,8 @@ export interface LabProps {
   instructor?: boolean;
   /** Storage key for the learner's ST program (PLC machines). */
   programKey?: string;
-  starter?: string;
+  /** Program starters (Structured Text, optional Ladder). */
+  starters?: Starters;
   /** Quiet diagnosis feedback (checkpoint). */
   quietDiagnosis?: boolean;
   showDiagnosis?: boolean;
@@ -54,7 +54,7 @@ export function Lab(props: LabProps) {
         mainExtra={
           <>
             {props.bottom?.(lab)}
-            {isPlc && <PlcEditorBlock lab={lab} programKey={props.programKey ?? 'sandbox'} starter={props.starter ?? def.plc?.starterProgram ?? ''} />}
+            {isPlc && <PlcEditorBlock lab={lab} programKey={props.programKey ?? 'sandbox'} starters={props.starters ?? { st: def.plc?.starterProgram ?? '' }} />}
           </>
         }
         sideMiddle={
@@ -80,54 +80,22 @@ export function Lab(props: LabProps) {
   );
 }
 
-function PlcEditorBlock({ lab, programKey, starter }: { lab: LabApi; programKey: string; starter: string }) {
-  const { t } = useT();
-  const progress = useProgress();
-  const saved = progress.programs[programKey];
-  const source = saved ?? starter;
-  const [notice, setNotice] = useState<string | null>(null);
-  const jump = useRef<(line: number) => void>(() => undefined);
-  void jump;
-
+function PlcEditorBlock({ lab, programKey, starters }: { lab: LabApi; programKey: string; starters: Starters }) {
+  const prog = usePlcProgram(programKey, starters);
   const errors = useMemo(
     () => lab.plc.errors.filter((e) => e.pos).map((e) => ({ line: e.pos!.line, message: e.message })),
     [lab.plc.errors],
   );
-
-  // Auto-load the saved program once the worker is ready? No: the learner loads explicitly (like a real download).
+  // The learner loads the program explicitly (like downloading to a real PLC).
   return (
     <div className="plc-block">
-      <div className="plc-toolbar">
-        <h3>{t('plc.title')} — Structured Text</h3>
-        <div className="row wrap">
-          <button
-            className="small"
-            onClick={async () => {
-              const f = await pickFile('.st,.txt,text/plain');
-              if (!f) return;
-              const r = checkStSource(f.text);
-              if (r.ok) {
-                actions.saveProgram(programKey, f.text);
-                setNotice(null);
-              } else if (confirm(`${r.message}\n\nImporter quand même?`)) {
-                actions.saveProgram(programKey, f.text);
-              }
-            }}
-          >
-            {t('plc.import')}
-          </button>
-          <button className="small" onClick={() => download(`${programKey}.st`, source)}>{t('plc.export')}</button>
-          <button className="small" onClick={() => actions.saveProgram(programKey, starter)}>{t('plc.starter')}</button>
-        </div>
-      </div>
-      <StEditor value={source} onChange={(v) => actions.saveProgram(programKey, v)} errors={errors} />
-      {notice && <p className="alert bad">{notice}</p>}
+      <PlcEditor prog={prog} errors={errors} status={lab.plc.status} />
       <PlcStatusPanel
         status={lab.plc.status}
         errors={lab.plc.errors}
         loaded={lab.plc.loaded}
         ioPoints={lab.plc.ioPoints}
-        onLoad={() => lab.loadProgram(source)}
+        onLoad={() => lab.loadProgram(prog.source)}
         onStop={() => lab.plcCommand('stop')}
         onReset={() => lab.plcCommand('reset')}
         onJump={() => undefined}

@@ -121,6 +121,8 @@ objectives:
 
 Les messages `msg` sont ce que l'apprenant lit quand il échoue : rendez-les **instructifs** (dites ce qui a été observé, pas la solution).
 
+**Ladder ou ST.** Ajoutez `ldStarter` (programme Ladder de départ) dans `plc:` pour offrir le Ladder à l'apprenant (`languages: [st, ld]`, `defaultLang: ld` pour l'imposer par défaut). Le Ladder est transcrit en ST puis exécuté par le même moteur : **les mêmes tests scriptés** valident les deux langages. Format d'un échelon (JSON/YAML) : `logic` = arbre `contact` (`k`: NO/NC/P/N) / `cmp` / `series` / `parallel`; `outputs` = `coil` (`normal`, `negated`, `set`, `reset`), `timer` (TON/TOF/TP) ou `counter` (CTU/CTD). Voir `packages/ladder/src/types.ts`; les contacts sur la sortie d'un bloc s'écrivent `T1.Q`, `C1.CV`.
+
 **Ajoutez toujours un test de « solution modèle »** dans `packages/content/test/golden.test.ts` : il prouve que votre bon est réalisable et que l'état initial échoue.
 
 ## Ajouter un point de contrôle — `content/checkpoints/*.yaml`

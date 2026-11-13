@@ -26,6 +26,18 @@ plc:
     (* À compléter : logique d'auto-maintien *)
 
     END_PROGRAM
+  ldStarter:
+    v: 1
+    name: Main
+    vars:
+      - { name: Marche, type: BOOL, address: '%IX0.0' }
+      - { name: Arret, type: BOOL, address: '%IX0.1' }
+      - { name: Surcharge, type: BOOL, address: '%IX0.2' }
+      - { name: AU_OK, type: BOOL, address: '%IX0.3' }
+      - { name: RetourM, type: BOOL, address: '%IX0.4' }
+      - { name: BobineM, type: BOOL, address: '%QX0.0' }
+      - { name: VoyantMarche, type: BOOL, address: '%QX0.1' }
+    rungs: []
   tests:
     - id: t-demarrage
       title: MARCHE démarre et la bobine reste collée après le relâchement

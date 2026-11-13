@@ -2,6 +2,11 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · Versions: [SemVer](https://semver.org/lang/fr/).
 
+## [Non publié / Unreleased]
+
+### Ajouté / Added
+- **Éditeur Ladder** (`@controlslab/ladder`) : modèle, opérations d'édition, transcription Ladder → ST, écoulement de puissance en direct, validation; éditeur SVG dans les bons de travail et la Cellule 3D; bon de travail BT-0006 (démarrage temporisé), points de départ Ladder pour BT-0005 et les scénarios.
+
 ## [0.1.0] — MVP (phase 1)
 
 ### Ajouté / Added

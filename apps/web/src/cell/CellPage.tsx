@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+import { LdProgramSchema } from '@controlslab/ladder';
 import { checkScenario, EntitySchema, type Scenario, type ScenarioResult } from '@controlslab/content';
 import { SPECS, generateDeclarations, newId, nextAddress, validateCell, defaultParams, type EntityDef, type EntityType } from '@controlslab/factory';
 import type { MachineDef } from '@controlslab/sim';
@@ -9,12 +10,13 @@ import { useRegistry } from '../content';
 import { useT } from '../i18n';
 import { PanelWorkbench } from '../lab/PanelWorkbench';
 import { PlcStatusPanel } from '../lab/Panels';
-import { StEditor } from '../lab/StEditor';
+import { PlcEditor } from '../lab/PlcEditor';
+import { usePlcProgram, type Starters } from '../store/plc';
 import { actions, getProgress, useProgress } from '../store/progress';
-import { checkStSource, download, pickFile } from '../store/transfer';
+import { download, pickFile } from '../store/transfer';
 import { Inspector, issueText } from './Inspector';
 import { CellView3D, snap, type ViewCallbacks } from './scene3d';
-import { mergeDeclarations } from './st';
+import { mergeDeclarations, mergeLdVars } from './st';
 import { useCellRuntime } from './useCell';
 
 const PALETTE: EntityType[] = ['conveyor', 'spawner', 'photo', 'prox', 'pusher', 'button', 'light', 'stacklight', 'bin'];
@@ -45,6 +47,16 @@ VoyantMarche := RetourM;
 END_PROGRAM
 `;
 
+const FREE_LD = { v: 1 as const, name: 'Main', vars: [
+  { name: 'Marche', type: 'BOOL' as const, address: '%IX0.0' },
+  { name: 'Arret', type: 'BOOL' as const, address: '%IX0.1' },
+  { name: 'Surcharge', type: 'BOOL' as const, address: '%IX0.2' },
+  { name: 'AU_OK', type: 'BOOL' as const, address: '%IX0.3' },
+  { name: 'RetourM', type: 'BOOL' as const, address: '%IX0.4' },
+  { name: 'BobineM', type: 'BOOL' as const, address: '%QX0.0' },
+  { name: 'VoyantMarche', type: 'BOOL' as const, address: '%QX0.1' },
+], rungs: [] };
+
 const LayoutSchema = z.array(EntitySchema);
 const layoutKey = (id: string) => `cell-layout:${id}`;
 const progKey = (id: string) => `cell-prog:${id}`;
@@ -60,7 +72,7 @@ function loadLayout(id: string, fallback: EntityDef[]): EntityDef[] {
   }
 }
 
-const CellFile = z.object({ app: z.literal('controlslab'), kind: z.literal('cell'), v: z.literal(1), scenario: z.string(), entities: LayoutSchema, program: z.string().max(200_000) });
+const CellFile = z.object({ app: z.literal('controlslab'), kind: z.literal('cell'), v: z.literal(1), scenario: z.string(), entities: LayoutSchema, program: z.string().max(200_000), ld: LdProgramSchema.optional(), lang: z.enum(['st', 'ld']).optional() });
 
 // ---------------- List ----------------
 export function CellsList() {
@@ -125,7 +137,12 @@ function CellEditor({ id, scenario }: { id: string; scenario?: Scenario }) {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<CellView3D | null>(null);
 
-  const source = progress.programs[progKey(id)] ?? scenario?.plc.starter ?? FREE_STARTER;
+  const starters: Starters = useMemo(
+    () => ({ st: scenario?.plc.starter ?? FREE_STARTER, ld: (scenario?.plc.ldStarter as Starters['ld']) ?? (scenario ? undefined : FREE_LD), languages: scenario?.plc.languages, defaultLang: scenario?.plc.defaultLang }),
+    [scenario],
+  );
+  const prog = usePlcProgram(progKey(id), starters);
+  const source = prog.source;
   const rt = useCellRuntime(entities, machines, scenario?.faults);
   const panelEntity = entities.find((e) => e.type === 'panel');
   const panelDef: MachineDef | undefined = panelEntity ? machines[String(panelEntity.params?.machine ?? 'motor-starter-plc')] : undefined;
@@ -329,7 +346,7 @@ function CellEditor({ id, scenario }: { id: string; scenario?: Scenario }) {
         <span className="spacer" />
         <button
           className="small"
-          onClick={() => download(`controlslab-cell-${id}.json`, JSON.stringify({ app: 'controlslab', kind: 'cell', v: 1, scenario: id, entities, program: source }, null, 2), 'application/json')}
+          onClick={() => download(`controlslab-cell-${id}.json`, JSON.stringify({ app: 'controlslab', kind: 'cell', v: 1, scenario: id, entities, program: source, ld: prog.lang === 'ld' ? prog.ld : undefined, lang: prog.lang }, null, 2), 'application/json')}
         >
           {t('cell.export')}
         </button>
@@ -341,7 +358,9 @@ function CellEditor({ id, scenario }: { id: string; scenario?: Scenario }) {
             try {
               const parsed = CellFile.parse(JSON.parse(file.text));
               setEntities(parsed.entities as EntityDef[]);
-              actions.saveProgram(progKey(id), parsed.program);
+              prog.setSt(parsed.program);
+              if (parsed.ld) prog.setLd(parsed.ld);
+              if (parsed.lang) prog.setLang(parsed.lang);
               setNotice(t('data.ok'));
             } catch (e) {
               setNotice(`Fichier invalide : ${(e as Error).message.slice(0, 120)}`);
@@ -428,39 +447,29 @@ function CellEditor({ id, scenario }: { id: string; scenario?: Scenario }) {
       </div>
 
       <section className="plc-block">
-        <div className="plc-toolbar">
-          <h3>{t('plc.title')} — Structured Text</h3>
-          <div className="row wrap">
+        <PlcEditor
+          prog={prog}
+          status={rt.plc.status}
+          errors={rt.plc.errors.filter((e) => e.pos).map((e) => ({ line: e.pos!.line, message: e.message }))}
+          extraTools={
             <button
               className="small"
               data-testid="insert-decl"
               onClick={() => {
-                const m = mergeDeclarations(source, generateDeclarations(entities, panelDef));
-                actions.saveProgram(progKey(id), m.source);
-                setNotice(m.added ? t('cell.decl.done', { n: m.added }) : t('cell.decl.none'));
+                if (prog.lang === 'ld') {
+                  const m = mergeLdVars(prog.ld, entities, panelDef);
+                  if (m.added) prog.setLd(m.program);
+                  setNotice(m.added ? t('cell.decl.done', { n: m.added }) : t('cell.decl.none'));
+                } else {
+                  const m = mergeDeclarations(prog.st, generateDeclarations(entities, panelDef));
+                  if (m.added) prog.setSt(m.source);
+                  setNotice(m.added ? t('cell.decl.done', { n: m.added }) : t('cell.decl.none'));
+                }
               }}
             >
               {t('cell.decl')}
             </button>
-            <button
-              className="small"
-              onClick={async () => {
-                const file = await pickFile('.st,.txt,text/plain');
-                if (!file) return;
-                const r = checkStSource(file.text);
-                if (r.ok || confirm(`${'message' in r ? r.message : ''}\n\nImporter quand même?`)) actions.saveProgram(progKey(id), file.text);
-              }}
-            >
-              {t('plc.import')}
-            </button>
-            <button className="small" onClick={() => download(`${id}.st`, source)}>{t('plc.export')}</button>
-            <button className="small" onClick={() => actions.saveProgram(progKey(id), scenario?.plc.starter ?? FREE_STARTER)}>{t('plc.starter')}</button>
-          </div>
-        </div>
-        <StEditor
-          value={source}
-          onChange={(v) => actions.saveProgram(progKey(id), v)}
-          errors={rt.plc.errors.filter((e) => e.pos).map((e) => ({ line: e.pos!.line, message: e.message }))}
+          }
         />
         <PlcStatusPanel
           status={rt.plc.status}
