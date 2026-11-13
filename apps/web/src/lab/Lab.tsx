@@ -99,6 +99,8 @@ function PlcEditorBlock({ lab, programKey, starters }: { lab: LabApi; programKey
         onStop={() => lab.plcCommand('stop')}
         onReset={() => lab.plcCommand('reset')}
         onJump={() => undefined}
+        external={lab.external}
+        extInputs={lab.machine.getPlcInputs()}
       />
     </div>
   );

@@ -5,6 +5,8 @@ import { LOTO_STEPS, type Machine, type MeterMode, type MeterReading } from '@co
 import { useState } from 'react';
 import { useT } from '../i18n';
 import type { StringKey } from '../strings';
+import type { ExternalPlc } from '../plc/external';
+import { ExternalPanel, PlcSourceSwitch } from '../plc/ExternalPanel';
 
 const short = (ref?: string) => (ref ? ref.replace(':', ' · ') : '—');
 
@@ -249,7 +251,7 @@ export function RepairPanel({ machine, onReplace, violation }: { machine: Machin
 }
 
 // ---------------- PLC panel ----------------
-export function PlcStatusPanel({ status, errors, loaded, ioPoints, onLoad, onStop, onReset, onJump }: {
+export function PlcStatusPanel({ status, errors, loaded, ioPoints, onLoad, onStop, onReset, onJump, external, extInputs }: {
   status: PlcStatus | null;
   errors: PlcErrorInfo[];
   loaded: boolean;
@@ -258,6 +260,9 @@ export function PlcStatusPanel({ status, errors, loaded, ioPoints, onLoad, onSto
   onStop(): void;
   onReset(): void;
   onJump(line: number): void;
+  /** When provided, the learner may swap the virtual PLC for an external one (Modbus TCP). */
+  external?: ExternalPlc;
+  extInputs?: Record<string, boolean>;
 }) {
   const { t } = useT();
   const mode = status?.mode ?? 'empty';
@@ -265,7 +270,12 @@ export function PlcStatusPanel({ status, errors, loaded, ioPoints, onLoad, onSto
   const val = (addr: string) => status?.vars[addr];
   return (
     <section className="panel plcstatus" aria-label={t('plc.title')}>
-      <h3>{t('plc.title')}</h3>
+      <div className="row wrap" style={{ justifyContent: 'space-between' }}>
+        <h3 style={{ margin: 0 }}>{t('plc.title')}</h3>
+        {external && <PlcSourceSwitch ext={external} />}
+      </div>
+      {external?.enabled && <ExternalPanel ext={external} ioPoints={ioPoints} inputs={extInputs} outputs={external.link.outputs} />}
+      {!external?.enabled && (<>
       <p className="status">
         {t('plc.mode')} : <strong className={`mode ${mode}`} data-testid="plc-mode">{t(`plc.mode.${mode}` as StringKey)}</strong> · {t('plc.scans')} : <span data-testid="plc-scans">{status?.scanCount ?? 0}</span>
       </p>
@@ -299,6 +309,7 @@ export function PlcStatusPanel({ status, errors, loaded, ioPoints, onLoad, onSto
           </tbody>
         </table>
       )}
+      </>)}
     </section>
   );
 }

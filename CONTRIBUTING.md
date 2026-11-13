@@ -238,6 +238,10 @@ objectives:
 
 Un **nouveau type d'appareil** demande du code : `packages/factory/src/types.ts` (spécification) + `sim.ts` (comportement) + `apps/web/src/cell/scene3d.ts` (dessin 3D), avec tests.
 
+## Contribuer au connecteur Modbus
+
+`packages/connector` : `modbus.ts` (protocole, fonctions pures), `bridge.ts` (adresses %IX/%QX ⇄ tables), `server.ts` (TCP + WebSocket), `cli.ts`. Le protocole WebSocket est documenté en tête de `server.ts`. Tout changement de protocole doit passer les tests de sockets réels **et** le test d'interopérabilité avec un client Modbus tiers (`test/interop.test.ts`). Le fichier distribuable se construit avec `npm run connector:build`.
+
 ## Contribuer au moteur d'API
 
 `packages/plc-engine`. Toute fonctionnalité ST arrive avec des tests dans `packages/plc-engine/test/` (couverture ≥ 90 %). Les erreurs ont un `code` stable et un message FR/EN (`errors.ts`).

@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "tsc -p . && vite build",
     "preview": "vite preview",
-    "e2e": "node e2e/smoke.mjs && node e2e/cell.mjs && node e2e/ladder.mjs && node e2e/machines.mjs"
+    "e2e": "node e2e/smoke.mjs && node e2e/cell.mjs && node e2e/ladder.mjs && node e2e/machines.mjs && node e2e/modbus.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.8.0",

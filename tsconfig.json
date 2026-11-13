@@ -5,6 +5,7 @@
     { "path": "packages/sim" },
     { "path": "packages/factory" },
     { "path": "packages/ladder" },
+    { "path": "packages/connector" },
     { "path": "packages/content" }
   ]
 }

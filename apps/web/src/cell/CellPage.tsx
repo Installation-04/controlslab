@@ -11,6 +11,7 @@ import { useT } from '../i18n';
 import { PanelWorkbench } from '../lab/PanelWorkbench';
 import { PlcStatusPanel } from '../lab/Panels';
 import { PlcEditor } from '../lab/PlcEditor';
+import { useExternalPlc } from '../plc/external';
 import { usePlcProgram, type Starters } from '../store/plc';
 import { actions, getProgress, useProgress } from '../store/progress';
 import { download, pickFile } from '../store/transfer';
@@ -143,7 +144,8 @@ function CellEditor({ id, scenario }: { id: string; scenario?: Scenario }) {
   );
   const prog = usePlcProgram(progKey(id), starters);
   const source = prog.source;
-  const rt = useCellRuntime(entities, machines, scenario?.faults);
+  const external = useExternalPlc();
+  const rt = useCellRuntime(entities, machines, scenario?.faults, external);
   const panelEntity = entities.find((e) => e.type === 'panel');
   const panelDef: MachineDef | undefined = panelEntity ? machines[String(panelEntity.params?.machine ?? 'motor-starter-plc')] : undefined;
   const issues = useMemo(() => validateCell(entities, panelDef), [entities, panelDef]);
@@ -270,7 +272,7 @@ function CellEditor({ id, scenario }: { id: string; scenario?: Scenario }) {
     }
     setNotice(null);
     setResult(null);
-    rt.start(source);
+    if (rt.start(source) === 'need-connector') setNotice(lang === 'fr' ? 'Automate externe sélectionné : démarrez le connecteur et cliquez « Connecter » dans le panneau de l’automate.' : 'External PLC selected: start the connector and click “Connect” in the PLC panel.');
   };
 
   const check = () => {
@@ -480,6 +482,8 @@ function CellEditor({ id, scenario }: { id: string; scenario?: Scenario }) {
           onStop={rt.stop}
           onReset={rt.reset}
           onJump={() => undefined}
+          external={external}
+          extInputs={rt.core.machine ? { ...rt.core.machine.getPlcInputs(), ...rt.core.factory.readInputs() } : undefined}
         />
       </section>
 

@@ -396,3 +396,11 @@ select, input[type='text'], input:not([type]), input[inputmode] {
 .dirtag.rev { background: var(--warn-bg); color: #8a5a00; }
 .dot.clamp { background: var(--amber); border: 1px solid #8a5a00; }
 .schematic .wire.clamped polyline { filter: drop-shadow(0 0 3px var(--amber)); }
+
+/* External PLC (Modbus) */
+.ext-panel { display: grid; gap: 8px; }
+.ext-cmd { background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; margin: 0; overflow-x: auto; }
+.badge-state { font-size: 0.8rem; font-weight: 700; padding: 2px 10px; border-radius: 999px; background: var(--surface-2); }
+.badge-state.connected { background: var(--ok-bg); color: var(--ok); }
+.badge-state.error { background: var(--bad-bg); color: var(--bad); }
+.badge-state.connecting { background: var(--warn-bg); }
