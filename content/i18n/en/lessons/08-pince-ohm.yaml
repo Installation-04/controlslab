@@ -1,0 +1,45 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+summary: Measure a current without opening the circuit, and check Ohm's law on a lighting bench.
+objectives:
+- Use a clamp meter safely and read a current.
+- Predict the currents of a parallel circuit from the power ratings.
+- Recognize the symptom of an open neutral.
+blocks:
+- md: |
+    A conventional **ammeter** connects **in series**: you have to open the circuit. A **clamp meter** measures the current through its magnetic field, **by encircling** the conductor: contact-free, on a live circuit, without opening it. It is the tool of choice for motors and loads.
+
+    Field rules: **a single conductor** in the clamp (two wires of the same circuit cancel and the clamp reads ≈ 0 A), a clamp CAT rating suited to the circuit, and a sufficient current range.
+- caption: 120 V lighting bench — three parallel branches behind a 15 A fuse.
+- title: In the lab
+  md: In the virtual multimeter, switch to **A~** mode then **click a wire** on the schematic to clamp it. The current is shown immediately, without disconnecting anything.
+- null
+- md: |
+    ## Predict before measuring
+
+    - 60 W lamp at 120 V: I = P ÷ V = **0.5 A**; R = V ÷ I = **240 Ω**.
+    - 1,500 W heater: I = **12.5 A**; R = **9.6 Ω**.
+    - The three branches are in **parallel**: same voltage (120 V), the **currents add up**: 0.5 + 0.5 + 12.5 = **13.5 A** in the fuse.
+
+    A 15 A fuse is therefore almost at its limit: adding a 300 W load would blow it (or, worse, an oversized breaker would no longer protect the wiring).
+
+    ## The open neutral
+
+    If the neutral conductor of a branch is cut, the lamp is off and yet **the neutral side of the lamp is at 120 V** relative to ground: it is connected to the phase *through the lamp*. Measuring only "across the lamp" gives 0 V and misleads. **Measure each terminal relative to ground.**
+- question: You place the clamp around both wires (outgoing and return) of a lamp. What does it read?
+  choices:
+  - Twice the current
+  - About 0 A, because the magnetic fields cancel
+  - The normal current
+  - An overload error
+  explain: 'The outgoing and return currents are equal and opposite: their fields cancel. The clamp must encircle ONE conductor only.'
+- question: The three branches of a parallel circuit draw 0.5 A, 0.5 A and 12.5 A. What current is read in the common conductor?
+  choices:
+  - 0.5 A
+  - 12.5 A
+  - 13.5 A
+  - 1.0 A
+- label: Measure the currents on the lighting bench
+- label: Troubleshoot the lamp that will not light (open neutral)
+references:
+- Your clamp meter's datasheet (CAT rating, range, accuracy).

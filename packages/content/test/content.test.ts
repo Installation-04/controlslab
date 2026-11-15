@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Machine } from '@controlslab/sim';
 import { ContentError, parseContent } from '../src';
-import { checkpoints, defById, lessons, machineDefs, workorders } from './helpers';
+import { checkpoints, defById, lessons, machineDefs, scenarios, workorders } from './helpers';
 
 const machines = () => Object.fromEntries(machineDefs().map((m) => [m.data.id, new Machine(structuredClone(m.data))]));
 
@@ -92,5 +92,29 @@ describe('content loader errors', () => {
     const p = parseContent('id: demo\norder: 9\ntitle: {fr: Bonjour, en: Hello}\nsummary: s\nminutes: 5\nobjectives: [a]\nblocks: [{type: text, md: x}]');
     expect(p.kind).toBe('lesson');
     expect(p.id).toBe('demo');
+  });
+});
+
+describe('English translation', () => {
+  const KEYS = new Set(['title', 'summary', 'objectives', 'md', 'caption', 'question', 'choices', 'explain', 'label', 'references', 'complaint', 'context', 'hints', 'msg', 'intro', 'name', 'description']);
+  const untranslated = (o: unknown, path: string[], out: string[]) => {
+    if (Array.isArray(o)) o.forEach((v, i) => (typeof v === 'string' && KEYS.has(path.at(-1)!) ? out.push([...path, i].join('.')) : untranslated(v, [...path, String(i)], out)));
+    else if (o && typeof o === 'object') {
+      if ('fr' in o) return;
+      for (const [k, v] of Object.entries(o)) {
+        if (k === 'starter' || k === 'code' || k === 'ldStarter') continue;
+        if (typeof v === 'string') { if (KEYS.has(k)) out.push([...path, k].join('.')); }
+        else untranslated(v, [...path, k], out);
+      }
+    }
+  };
+  it('every lesson, work order, checkpoint and scenario is fully translated', () => {
+    const all = [...lessons(), ...workorders(), ...checkpoints(), ...scenarios()];
+    const problems = all.flatMap(({ file, data }) => {
+      const out: string[] = [];
+      untranslated(data, [], out);
+      return out.map((p) => `${file}: ${p}`);
+    });
+    expect(problems).toEqual([]);
   });
 });

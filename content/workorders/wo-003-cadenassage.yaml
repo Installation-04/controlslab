@@ -13,7 +13,7 @@ hints:
 objectives:
   - { type: loto_step, step: notify, label: Personnes avisées }
   - { type: loto_step, step: shutdown, label: Arrêt normal avant d'isoler (pas d'ouverture du sectionneur en charge) }
-  - { type: loto_step, step: lockout, label: Sectionneur ouvert, cadenassé et étiqueté }
+  - { type: loto_step, step: lockout, label: "Sectionneur ouvert, cadenassé et étiqueté" }
   - { type: loto_step, step: stored_energy, label: Énergie résiduelle dissipée (moteur arrêté) }
   - { type: loto_step, step: try_start, label: Tentative de démarrage }
   - { type: loto_step, step: verify, label: Vérification vivant – mort – vivant complète }

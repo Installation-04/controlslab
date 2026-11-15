@@ -75,7 +75,7 @@ plc:
         - { run: 300 }
         - { panelRelease: PB_START }
         - { run: 150000 }
-        - { expectTank: { id: TK1, maxOverflowMs: 0, maxEmptyMs: 0 }, msg: Le niveau doit rester entre les deux capteurs, sans débordement ni mise à sec }
+        - { expectTank: { id: TK1, maxOverflowMs: 0, maxEmptyMs: 0 }, msg: "Le niveau doit rester entre les deux capteurs, sans débordement ni mise à sec" }
         - { expectLevel: { id: TK1, min: 0.1, max: 0.95 } }
         - { expectOutput: { address: '%QX1.1', equals: false }, msg: L'ambre (niveau bas) ne doit pas rester allumé en régulation normale }
     - id: t-arret

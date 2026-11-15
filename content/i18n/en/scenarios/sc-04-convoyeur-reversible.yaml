@@ -1,0 +1,64 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+title: Reversible conveyor to two bins
+complaint: '"Boxes arrive in the middle of the conveyor. FORWARD sends them to the right bin, REVERSE to the left bin. I want to be able to change direction without breaking anything."'
+context: 'The conveyor is driven by the panel''s reversing starter (contactors KF and KR). Program both directions with an interlock (same logic as BT-0011), then test in the scene: open the panel to press FORWARD / STOP / REVERSE. The belt direction comes from the real rotation direction of the motor, hence from the phase sequence.'
+hints:
+- 'It is the program of BT-0011: one seal-in per direction, each with "AND NOT the other coil".'
+- 'Changing direction while running causes plugging of the motor: a good program requires STOP first.'
+- 'If an NC interlock contact stays stuck closed, the wiring no longer protects: your software interlock is the second line of defense.'
+entities:
+- name: Reversing panel
+- null
+- null
+- name: Left bin
+- name: Right bin
+plc:
+  tests:
+  - title: FORWARD sends the boxes to the right bin
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - msg: At least 3 boxes must reach the right bin when running forward
+    - msg: No box must go left when running forward
+  - title: REVERSE sends the boxes to the left bin
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - msg: At least 3 boxes must reach the left bin when running in reverse
+  - title: Direction change through STOP, no box lost
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - msg: The right bin must have received at least one box during forward running
+    - msg: The left bin must have received at least one box after the reversal
+  - title: No direct reversal while running
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - msg: The program must not command KR while KF is active
+objectives:
+- label: FORWARD → right bin
+- label: REVERSE → left bin
+- label: Reversal through STOP
+- label: Software interlock

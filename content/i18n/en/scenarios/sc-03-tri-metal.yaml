@@ -1,0 +1,41 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+title: Sort the metal boxes
+complaint: '"Metal and plastic boxes arrive mixed. I want the metal boxes pushed into the side bin and the plastic to continue to the end."'
+context: 'An inductive sensor (%IX1.0) recognizes metal boxes, upstream. Further on, a photoelectric sensor (%IX1.1) indicates that a box is in front of the pusher cylinder. The cylinder: extend %QX1.0, retracted limit switch %IX1.2, extended %IX1.3. You must remember "metal box detected" until it arrives in front of the cylinder.'
+hints:
+- 'The inductive sensor only sees the box for a few moments: use R_TRIG to remember the passage in a variable ("Metal").'
+- Extend the cylinder when Metal AND the photoelectric sensor sees the box in front of the cylinder.
+- 'Retract the cylinder when the "extended" limit switch (%IX1.3) confirms the end of stroke, then clear Metal. Do not rely on the photoelectric sensor: it loses the box before the end of the push.'
+entities:
+- name: Control panel
+- null
+- null
+- name: Inductive sensor
+- name: Cylinder photoelectric sensor
+- null
+- name: Plastic bin
+- name: Metal bin
+plc:
+  tests:
+  - title: Metal boxes go to the side bin, plastic to the end
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - msg: The 3 metal boxes must end up in the metal bin
+    - msg: No plastic box must be pushed into the metal bin
+    - msg: The 3 plastic boxes must reach the end of the conveyor
+    - msg: A metal box missed the cylinder
+    - msg: A box fell to the floor
+  - title: The cylinder stays retracted without a metal box
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - msg: The cylinder must not extend as long as no metal box has been detected
+objectives:
+- label: Complete metal / plastic sorting
+- label: Cylinder at rest by default

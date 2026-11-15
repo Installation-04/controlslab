@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+title: The motor starts then loses speed
+complaint: '"On START it takes off, you hear the contactor... then after a few seconds a second click and the pump slows down until it stops."'
+context: 5 HP, 600 V compressor, star-delta starter. The overload relay has not tripped. The motor has not reached full speed since yesterday.
+hints:
+- The "second click" is the STAR contactor (KM3) dropping out at the end of the delay. What should happen at that moment?
+- After the delay, contact 17-18 of KT must close to energize the coil of the DELTA contactor (KM2). Press START, wait more than 5 s, then measure across that contact.
+- 120 V across a contact that should be closed = open contact.
+objectives:
+- label: Measurement across timed contact 17-18 after the delay (120 V expected if open)
+- label: Correct diagnosis
+- label: Complete lockout before the work
+- label: Timer relay replaced
+- label: Fault cleared
+- label: Return to service
+- label: No safety violation

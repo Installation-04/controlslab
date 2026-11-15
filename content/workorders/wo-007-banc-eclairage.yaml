@@ -16,7 +16,7 @@ objectives:
   - { type: state, component: SW1, key: pressed, equals: true, label: Interrupteur 1 allumé }
   - { type: state, component: SW2, key: pressed, equals: true, label: Interrupteur 2 allumé }
   - { type: state, component: SW3, key: pressed, equals: true, label: Interrupteur 3 (radiateur) allumé }
-  - { type: clamp, from: 'SW1:2', to: 'LT1:X1', min: 0.4, max: 0.6, label: Courant de la lampe 1 (≈ 0,5 A) }
-  - { type: clamp, from: 'SW3:2', to: 'LT3:X1', min: 11.5, max: 13.5, label: Courant du radiateur (≈ 12,5 A) }
-  - { type: clamp, from: 'F1:2', to: 'JA:T', min: 12.5, max: 14.5, label: Courant total dans le fusible F1 (≈ 13,5 A) }
+  - { type: clamp, from: 'SW1:2', to: 'LT1:X1', min: 0.4, max: 0.6, label: "Courant de la lampe 1 (≈ 0,5 A)" }
+  - { type: clamp, from: 'SW3:2', to: 'LT3:X1', min: 11.5, max: 13.5, label: "Courant du radiateur (≈ 12,5 A)" }
+  - { type: clamp, from: 'F1:2', to: 'JA:T', min: 12.5, max: 14.5, label: "Courant total dans le fusible F1 (≈ 13,5 A)" }
   - { type: measured, points: ['LT3:X1', 'LT3:X2'], mode: VAC, min: 110, max: 125, label: Tension aux bornes du radiateur (≈ 120 V) }

@@ -1,0 +1,50 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+summary: The complete sequence, in order, up to "live – dead – live".
+objectives:
+- Carry out the lockout sequence in the right order.
+- Explain why a normal stop comes before opening the disconnect.
+- Perform the live – dead – live check on every required point.
+blocks:
+- md: This lesson is an **exercise**. For real work, follow the written procedure of your employer and of the client company, the applicable regulations and standard **CSA Z460** (control of hazardous energy). The procedure for a specific piece of equipment always takes precedence over this summary.
+- md: |
+    ## The sequence
+
+    1. **Notify** the people affected (operators, supervisor): we are stopping and locking out.
+    2. **Stop** the machine with its normal controls (STOP button). Never open a disconnect under load: arcing, wear, danger.
+    3. **Isolate**: open the disconnect(s) — *all* energy sources (electrical, pneumatic, hydraulic, gravity…).
+    4. **Lock and tag**: personal padlock, with name and date. **One lock per person**; the key stays on you.
+    5. **Release residual energy**: motor coasting, capacitors, springs, pressure.
+    6. **Try to start** (try-start) to confirm the right machine is isolated.
+    7. **Verify absence of voltage**: **live – dead – live**.
+    8. **Return to service**: work finished, tools removed, people notified, locks removed *by their owner*, then close the disconnect.
+- caption: The SA disconnect is the isolating device. The line side (L1-L3) stays energized even when open!
+- title: The line-side trap
+  md: With the disconnect open, terminals **L1-L2-L3** (supply side) are **still at 600 V**. Only the load side (T1-T2-T3) is isolated. Do not mistake an "OFF" label for the absence of voltage.
+- md: |
+    ## Live – dead – live
+
+    1. **Live**: measure a known source (here, the line side of the disconnect, L1–L2) to prove *your meter works*.
+    2. **Dead**: measure **every** combination where you will work: phase-to-phase **and** phase-to-ground. Every measurement must read ~0 V.
+    3. **Live**: measure the known source again: if the meter died in the meantime (battery, fuse), your "0 V" was worthless.
+
+    In the simulator, the 7 points to verify are: T1–T2, T2–T3, T1–T3, **T1, T2 and T3 to ground (PE)**, and the control transformer secondary (**X1–X2**). Why the last one? Because a control circuit can sometimes be fed from another source: never assume, measure.
+- question: Why do we stop the machine with the STOP button before opening the disconnect?
+  choices:
+  - To save energy
+  - Because opening a disconnect under load can cause an arc and damage equipment or injure someone
+  - Because the STOP button locks out the machine
+  - It is not necessary
+  explain: A disconnect is not designed to break a motor load repeatedly; the arc is a real hazard. We stop normally, then isolate.
+- question: After locking out, you press START and nothing moves. What do you do?
+  choices:
+  - The machine is safe, we start the work
+  - We continue with the absence-of-voltage check (live – dead – live)
+  - We remove the lock
+  - We close the disconnect to check again
+  explain: 'The try-start only proves the absence of movement, not the absence of voltage: an open control circuit or a blown fuse would give the same result. The measurement remains mandatory.'
+- label: Perform the complete lockout
+references:
+- 'CSA Z460 — Control of hazardous energy: lockout and other methods.'
+- CSA Z462 — Workplace electrical safety.
+- RSST (Québec) — provisions on lockout.
