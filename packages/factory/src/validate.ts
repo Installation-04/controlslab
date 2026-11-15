@@ -57,7 +57,7 @@ export function validateCell(entities: EntityDef[], panelDef?: MachineDef): Issu
     }
   }
   // Overlap of floor footprints (excluding sensors/lights placed on or beside belts, and the panel).
-  const solid = entities.filter((e) => ['conveyor', 'bin', 'panel', 'spawner'].includes(e.type));
+  const solid = entities.filter((e) => ['conveyor', 'bin', 'panel', 'spawner', 'tank'].includes(e.type));
   for (let i = 0; i < solid.length; i++) {
     for (let j = i + 1; j < solid.length; j++) {
       const a = solid[i]!;

@@ -15,6 +15,7 @@ export type EntityType =
   | 'light'
   | 'stacklight'
   | 'bin'
+  | 'tank'
   | 'panel';
 
 export type ItemKind = 'plastic' | 'metal' | 'cardboard';
@@ -160,6 +161,23 @@ export const SPECS: Record<EntityType, EntitySpec> = {
     signals: [],
     params: [num('size', 'Côté (m)', 'Side (m)', 0.7, 0.4, 1.5, 0.1)],
   },
+  tank: {
+    label: L('Réservoir avec pompe', 'Tank with pump'),
+    size: () => [0.9, 0.9],
+    signals: [
+      { name: 'pump', dir: 'output', label: L('Pompe en marche (sortie)', 'Pump run (output)') },
+      { name: 'low', dir: 'input', label: L('Niveau bas atteint (entrée)', 'Low level reached (input)') },
+      { name: 'high', dir: 'input', label: L('Niveau haut atteint (entrée)', 'High level reached (input)') },
+    ],
+    params: [
+      num('fillSec', 'Remplissage vide→plein (s)', 'Fill empty→full (s)', 20, 5, 120, 1),
+      num('drainSec', 'Consommation plein→vide (s)', 'Demand full→empty (s)', 40, 5, 240, 1),
+      num('lowAt', 'Capteur bas (0–1)', 'Low sensor (0–1)', 0.25, 0.05, 0.5, 0.05),
+      num('highAt', 'Capteur haut (0–1)', 'High sensor (0–1)', 0.8, 0.5, 0.95, 0.05),
+      num('startLevel', 'Niveau initial (0–1)', 'Start level (0–1)', 0.5, 0, 1, 0.05),
+      { key: 'drive', label: L('Entraînement de la pompe', 'Pump drive'), type: 'select', default: 'direct', options: ['direct', 'panel'] },
+    ],
+  },
   panel: {
     label: L('Panneau électrique', 'Electrical panel'),
     size: () => [0.35, 0.8],
@@ -178,6 +196,6 @@ export const dirOf = (rot: Rot): [number, number] => [[1, 0], [0, 1], [-1, 0], [
 
 export function newId(type: EntityType, existing: Iterable<string>): string {
   const used = new Set(existing);
-  const prefix = { conveyor: 'CV', spawner: 'SP', photo: 'PH', prox: 'PX', pusher: 'PU', button: 'BT', light: 'LT', stacklight: 'SL', bin: 'BN', panel: 'PN' }[type];
+  const prefix = { conveyor: 'CV', spawner: 'SP', photo: 'PH', prox: 'PX', pusher: 'PU', button: 'BT', light: 'LT', stacklight: 'SL', bin: 'BN', tank: 'TK', panel: 'PN' }[type];
   for (let i = 1; ; i++) if (!used.has(`${prefix}${i}`)) return `${prefix}${i}`;
 }

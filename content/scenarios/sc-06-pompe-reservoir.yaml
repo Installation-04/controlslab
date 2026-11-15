@@ -1,0 +1,104 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: sc-06-pompe-reservoir
+number: SC-0006
+title: Régulation de niveau d'un réservoir
+complaint: >-
+  « Le réservoir d'eau de procédé se vide pendant la production et déborde quand quelqu'un oublie d'arrêter la pompe. Je veux un remplissage automatique : la pompe part quand le niveau est bas et s'arrête quand il est haut. »
+context: >-
+  La pompe est entraînée par le moteur du panneau (contacteur M). Le réservoir consomme de l'eau en continu. Le capteur de niveau bas est sur %IX1.0 et le capteur de niveau haut sur %IX1.1
+  (vrai = le liquide atteint le capteur). La colonne lumineuse : vert %QX1.0 (pompe en marche), ambre %QX1.1 (niveau bas), rouge %QX1.2 (surcharge).
+  Le bouton MARCHE du panneau autorise le mode automatique, ARRÊT le coupe.
+hints:
+  - >-
+    Il faut une hystérésis, comme un thermostat : une mémoire « Remplir » se met à 1 quand le niveau est bas et retombe à 0 quand le niveau est haut. Entre les deux, elle garde son état.
+  - >-
+    La bobine M est vraie seulement si le mode automatique est autorisé (auto-maintien MARCHE/ARRÊT) ET que Remplir est à 1.
+  - >-
+    Le capteur bas est vrai quand le liquide est présent à son niveau; « niveau bas » veut donc dire NON Bas.
+editable: true
+entities:
+  - { id: PN1, type: panel, x: -1.6, z: -1.7, rot: 0, params: { machine: motor-starter-plc }, locked: true, name: Panneau de pompe }
+  - { id: TK1, type: tank, x: 0, z: 0, rot: 0, params: { fillSec: 20, drainSec: 40, lowAt: 0.25, highAt: 0.8, startLevel: 0.15, drive: panel }, io: { low: '%IX1.0', high: '%IX1.1' }, locked: true, name: Réservoir }
+  - { id: SL1, type: stacklight, x: 1.4, z: -0.9, rot: 0, io: { green: '%QX1.0', amber: '%QX1.1', red: '%QX1.2' } }
+plc:
+  starter: |
+    PROGRAM Main
+    VAR
+        Marche       AT %IX0.0 : BOOL;
+        Arret        AT %IX0.1 : BOOL;   (* NF : TRUE quand non appuyé *)
+        Surcharge    AT %IX0.2 : BOOL;
+        AU_OK        AT %IX0.3 : BOOL;
+        RetourM      AT %IX0.4 : BOOL;
+        BobineM      AT %QX0.0 : BOOL;   (* moteur de la pompe *)
+        VoyantMarche AT %QX0.1 : BOOL;
+        Bas          AT %IX1.0 : BOOL;   (* TRUE = liquide au niveau bas *)
+        Haut         AT %IX1.1 : BOOL;   (* TRUE = liquide au niveau haut *)
+        Vert         AT %QX1.0 : BOOL;
+        Ambre        AT %QX1.1 : BOOL;
+        Rouge        AT %QX1.2 : BOOL;
+    END_VAR
+
+    (* À compléter *)
+
+    END_PROGRAM
+  ldStarter:
+    v: 1
+    name: Main
+    vars:
+      - { name: Marche, type: BOOL, address: '%IX0.0' }
+      - { name: Arret, type: BOOL, address: '%IX0.1' }
+      - { name: Surcharge, type: BOOL, address: '%IX0.2' }
+      - { name: AU_OK, type: BOOL, address: '%IX0.3' }
+      - { name: RetourM, type: BOOL, address: '%IX0.4' }
+      - { name: BobineM, type: BOOL, address: '%QX0.0' }
+      - { name: VoyantMarche, type: BOOL, address: '%QX0.1' }
+      - { name: Bas, type: BOOL, address: '%IX1.0' }
+      - { name: Haut, type: BOOL, address: '%IX1.1' }
+      - { name: Vert, type: BOOL, address: '%QX1.0' }
+      - { name: Ambre, type: BOOL, address: '%QX1.1' }
+      - { name: Rouge, type: BOOL, address: '%QX1.2' }
+    rungs: []
+  tests:
+    - id: t-remplissage
+      title: La pompe remplit le réservoir jusqu'au niveau haut sans déborder
+      steps:
+        - { panelPress: PB_START }
+        - { run: 300 }
+        - { panelRelease: PB_START }
+        - { run: 40000 }
+        - { expectLevel: { id: TK1, min: 0.5 }, msg: La pompe doit remplir le réservoir quand le niveau est bas }
+        - { expectTank: { id: TK1, maxOverflowMs: 0 }, msg: Le réservoir ne doit jamais déborder }
+    - id: t-hysteresis
+      title: Régulation continue entre les niveaux bas et haut
+      steps:
+        - { panelPress: PB_START }
+        - { run: 300 }
+        - { panelRelease: PB_START }
+        - { run: 150000 }
+        - { expectTank: { id: TK1, maxOverflowMs: 0, maxEmptyMs: 0 }, msg: Le niveau doit rester entre les deux capteurs, sans débordement ni mise à sec }
+        - { expectLevel: { id: TK1, min: 0.1, max: 0.95 } }
+        - { expectOutput: { address: '%QX1.1', equals: false }, msg: L'ambre (niveau bas) ne doit pas rester allumé en régulation normale }
+    - id: t-arret
+      title: ARRÊT et arrêt d'urgence coupent la pompe
+      steps:
+        - { panelPress: PB_START }
+        - { run: 300 }
+        - { panelRelease: PB_START }
+        - { run: 4000 }
+        - { expectOutput: { address: '%QX0.0', equals: true }, msg: La pompe doit tourner quand le niveau est bas }
+        - { panelPress: PB_STOP }
+        - { run: 300 }
+        - { panelRelease: PB_STOP }
+        - { run: 500 }
+        - { expectOutput: { address: '%QX0.0', equals: false }, msg: ARRÊT doit couper la pompe même si le niveau est bas }
+        - { panelPress: PB_START }
+        - { run: 300 }
+        - { panelRelease: PB_START }
+        - { run: 2000 }
+        - { panelPress: PB_ES }
+        - { run: 500 }
+        - { expectOutput: { address: '%QX0.0', equals: false }, msg: L'arrêt d'urgence doit couper la pompe }
+objectives:
+  - { type: plc_test, test: t-remplissage, label: Remplissage sans débordement }
+  - { type: plc_test, test: t-hysteresis, label: Régulation par hystérésis }
+  - { type: plc_test, test: t-arret, label: Arrêt normal et arrêt d'urgence }

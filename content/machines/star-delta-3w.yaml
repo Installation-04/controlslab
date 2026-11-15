@@ -1,0 +1,515 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Démarreur étoile-triangle câblé (généré puis édité à la main).
+id: star-delta-3w
+version: 1
+title: {fr: Démarreur étoile-triangle câblé, en: Hardwired star-delta starter}
+description: {fr: 'Démarrage à tension réduite : le moteur démarre en étoile (courant de démarrage environ trois fois plus faible), puis un relais
+    temporisé commute en triangle. Les contacts NF 21-22 de KM2 et KM3 interdisent leur fermeture simultanée (court-circuit entre phases).', en: 'Reduced-voltage
+    starting: the motor starts in star (about one third of the starting current), then a timer relay changes over to delta. The NC 21-22 contacts
+    of KM2 and KM3 prevent both closing at once (phase-to-phase short circuit).'}
+mode: hardwired
+viewBox: [1260, 900]
+components:
+- id: SRC
+  type: source3
+  tag: Alim.
+  label: {fr: Alimentation 600 V 3φ 60 Hz, en: 600 V 3-phase 60 Hz supply}
+  params: {vLL: 600}
+  parts:
+    main:
+      at: [60, 40]
+- id: DS
+  type: disconnect3
+  tag: SA
+  label: {fr: Sectionneur principal (cadenassable), en: Main disconnect (lockable)}
+  parts:
+    main:
+      at: [60, 80]
+- id: F1
+  type: fuse
+  tag: F1
+  label: {fr: Fusible principal L1 (10 A), en: Main fuse L1 (10 A)}
+  params: {rating: 10}
+  parts:
+    main:
+      at: [60, 170]
+      rot: 90
+- id: F2
+  type: fuse
+  tag: F2
+  label: {fr: Fusible principal L2 (10 A), en: Main fuse L2 (10 A)}
+  params: {rating: 10}
+  parts:
+    main:
+      at: [110, 170]
+      rot: 90
+- id: F3
+  type: fuse
+  tag: F3
+  label: {fr: Fusible principal L3 (10 A), en: Main fuse L3 (10 A)}
+  params: {rating: 10}
+  parts:
+    main:
+      at: [160, 170]
+      rot: 90
+- id: PE
+  type: ground
+  tag: MALT
+  label: {fr: Barre de mise à la terre (boîtier), en: Ground bar (enclosure)}
+  parts:
+    main:
+      at: [230, 130]
+- id: KM1
+  type: contactor
+  tag: KM1
+  label: {fr: Contacteur de ligne KM1 (bobine 120 V), en: Line contactor KM1 (120 V coil)}
+  parts:
+    poles:
+      at: [60, 300]
+    coil:
+      at: [1010, 540]
+    aux:
+      at: [830, 590]
+- id: KM2
+  type: contactor
+  tag: KM2
+  label: {fr: Contacteur TRIANGLE KM2 (bobine 120 V), en: DELTA contactor KM2 (120 V coil)}
+  parts:
+    poles:
+      at: [300, 540]
+    coil:
+      at: [1090, 800]
+    aux_nc:
+      at: [1010, 730]
+- id: KM3
+  type: contactor
+  tag: KM3
+  label: {fr: Contacteur ÉTOILE KM3 (bobine 120 V), en: STAR contactor KM3 (120 V coil)}
+  parts:
+    poles:
+      at: [520, 640]
+    coil:
+      at: [1090, 730]
+    aux_nc:
+      at: [1010, 800]
+- id: KT
+  type: timer_relay
+  tag: KT
+  label: {fr: Relais temporisé à l’excitation (étoile → triangle), en: On-delay timer relay (star → delta)}
+  params: {delayMs: 5000, deadMs: 100}
+  parts:
+    coil:
+      at: [1010, 660]
+    nc:
+      at: [930, 730]
+    'no':
+      at: [930, 800]
+- id: OL
+  type: overload
+  tag: OL
+  label: {fr: 'Relais de surcharge thermique (réglé à 5,2 A)', en: Thermal overload relay (set at 5.2 A)}
+  params: {fla: 5.2}
+  parts:
+    heaters:
+      at: [60, 430]
+    nc:
+      at: [1090, 420]
+- id: MTR
+  type: motor6
+  tag: M1
+  label: {fr: 'Moteur 5 HP, 600 V (Δ), 5,2 A PC, 6 bornes', en: 'Motor 5 HP, 600 V (Δ), 5.2 FLA, 6 terminals'}
+  params: {vLL: 600, fla: 5.2}
+  parts:
+    main:
+      at: [60, 640]
+- id: F4
+  type: fuse
+  tag: F4
+  label: {fr: Fusible primaire TC (1 A), en: CPT primary fuse (1 A)}
+  params: {rating: 1}
+  parts:
+    main:
+      at: [430, 232]
+- id: F5
+  type: fuse
+  tag: F5
+  label: {fr: Fusible primaire TC (1 A), en: CPT primary fuse (1 A)}
+  params: {rating: 1}
+  parts:
+    main:
+      at: [430, 252]
+- id: XF
+  type: transformer
+  tag: TC
+  label: {fr: 'Transformateur de commande 600/120 V, 250 VA', en: 'Control transformer 600/120 V, 250 VA'}
+  params: {ratio: 5}
+  parts:
+    main:
+      at: [580, 260]
+- id: F6
+  type: fuse
+  tag: F6
+  label: {fr: Fusible secondaire (2 A), en: Secondary fuse (2 A)}
+  params: {rating: 2}
+  parts:
+    main:
+      at: [580, 400]
+- id: GX
+  type: ground
+  tag: X2
+  label: {fr: Mise à la terre du secondaire X2, en: X2 secondary bond}
+  parts:
+    main:
+      at: [700, 330]
+- id: TB1
+  type: terminal
+  tag: '1'
+  parts:
+    main:
+      at: [700, 400]
+- id: TB0
+  type: terminal
+  tag: X2
+  parts:
+    main:
+      at: [1150, 330]
+- id: PB_STOP
+  type: pushbutton
+  tag: PB1
+  label: {fr: Bouton ARRÊT (NF), en: STOP button (NC)}
+  params: {contact: NC, kind: momentary, color: red}
+  parts:
+    main:
+      at: [720, 470]
+- id: PB_START
+  type: pushbutton
+  tag: PB2
+  label: {fr: Bouton MARCHE (NO), en: START button (NO)}
+  params: {contact: 'NO', kind: momentary, color: green}
+  parts:
+    main:
+      at: [830, 540]
+- id: J2A
+  type: terminal
+  tag: '2'
+  parts:
+    main:
+      at: [800, 470]
+- id: J2B
+  type: terminal
+  parts:
+    main:
+      at: [800, 540]
+- id: J2C
+  type: terminal
+  parts:
+    main:
+      at: [800, 590]
+- id: J3a
+  type: terminal
+  tag: '3'
+  parts:
+    main:
+      at: [910, 540]
+- id: J3b
+  type: terminal
+  parts:
+    main:
+      at: [910, 590]
+- id: J3c
+  type: terminal
+  parts:
+    main:
+      at: [910, 660]
+- id: J3d
+  type: terminal
+  parts:
+    main:
+      at: [910, 730]
+- id: J3e
+  type: terminal
+  parts:
+    main:
+      at: [910, 800]
+- id: J5a
+  type: terminal
+  tag: '5'
+  parts:
+    main:
+      at: [1190, 540]
+- id: J5c
+  type: terminal
+  parts:
+    main:
+      at: [1190, 660]
+- id: J5d
+  type: terminal
+  parts:
+    main:
+      at: [1190, 730]
+- id: J5e
+  type: terminal
+  parts:
+    main:
+      at: [1190, 800]
+- id: J5t
+  type: terminal
+  parts:
+    main:
+      at: [1190, 470]
+- id: STAR
+  type: terminal
+  tag: Y
+  parts:
+    main:
+      at: [570, 740]
+wires:
+- {id: W1, label: L1, from: 'SRC:L1', to: 'DS:L1'}
+- {id: W2, label: L2, from: 'SRC:L2', to: 'DS:L2'}
+- {id: W3, label: L3, from: 'SRC:L3', to: 'DS:L3'}
+- {id: W4, label: L1A, from: 'DS:T1', to: 'F1:1'}
+- {id: W5, label: L2A, from: 'DS:T2', to: 'F2:1'}
+- {id: W6, label: L3A, from: 'DS:T3', to: 'F3:1'}
+- {id: W7, label: L1B, from: 'F1:2', to: 'KM1:L1'}
+- {id: W8, label: L2B, from: 'F2:2', to: 'KM1:L2'}
+- {id: W9, label: L3B, from: 'F3:2', to: 'KM1:L3'}
+- {id: W10, label: T1A, from: 'KM1:T1', to: 'OL:L1'}
+- {id: W11, label: T2A, from: 'KM1:T2', to: 'OL:L2'}
+- {id: W12, label: T3A, from: 'KM1:T3', to: 'OL:L3'}
+- {id: W13, label: T1, from: 'OL:T1', to: 'MTR:U1'}
+- {id: W14, label: T2, from: 'OL:T2', to: 'MTR:V1'}
+- {id: W15, label: T3, from: 'OL:T3', to: 'MTR:W1'}
+- id: W16
+  label: T1
+  from: OL:T1
+  to: KM2:L1
+  via:
+  - [60, 510]
+  - [300, 510]
+  junctions:
+  - [60, 510]
+- id: W17
+  label: T2
+  from: OL:T2
+  to: KM2:L2
+  via:
+  - [110, 520]
+  - [350, 520]
+  junctions:
+  - [110, 520]
+- id: W18
+  label: T3
+  from: OL:T3
+  to: KM2:L3
+  via:
+  - [160, 530]
+  - [400, 530]
+  junctions:
+  - [160, 530]
+- id: W19
+  label: W2
+  from: KM2:T1
+  to: MTR:W2
+  via:
+  - [300, 770]
+  - [160, 770]
+- id: W20
+  label: U2
+  from: KM2:T2
+  to: MTR:U2
+  via:
+  - [350, 780]
+  - [60, 780]
+- id: W21
+  label: V2
+  from: KM2:T3
+  to: MTR:V2
+  via:
+  - [400, 790]
+  - [110, 790]
+- id: W22
+  label: U2
+  from: KM3:L1
+  to: KM2:T2
+  via:
+  - [520, 615]
+  - [350, 615]
+  junctions:
+  - [350, 615]
+- id: W23
+  label: V2
+  from: KM3:L2
+  to: KM2:T3
+  via:
+  - [570, 625]
+  - [400, 625]
+  junctions:
+  - [400, 625]
+- id: W24
+  label: W2
+  from: KM3:L3
+  to: KM2:T1
+  via:
+  - [620, 605]
+  - [300, 605]
+  junctions:
+  - [300, 605]
+- id: W25
+  label: Y
+  from: KM3:T1
+  to: STAR:T
+  via:
+  - [520, 740]
+- {id: W26, label: Y, from: 'KM3:T2', to: 'STAR:T'}
+- id: W27
+  label: Y
+  from: KM3:T3
+  to: STAR:T
+  via:
+  - [620, 740]
+- id: W28
+  label: L1B
+  from: F1:2
+  to: F4:1
+  via:
+  - [60, 232]
+  junctions:
+  - [60, 232]
+- id: W29
+  label: L3B
+  from: F3:2
+  to: F5:1
+  via:
+  - [160, 252]
+  junctions:
+  - [160, 252]
+- id: W30
+  label: H1
+  from: F4:2
+  to: XF:H1
+  via:
+  - [580, 232]
+- id: W31
+  label: H2
+  from: F5:2
+  to: XF:H2
+  via:
+  - [640, 252]
+- {id: W32, label: X1, from: 'XF:X1', to: 'F6:1'}
+- {id: W33, label: X2, from: 'XF:X2', to: 'GX:G'}
+- {id: W34, label: X2, from: 'GX:G', to: 'TB0:T'}
+- id: W35
+  label: '1'
+  from: F6:2
+  to: TB1:T
+  via:
+  - [700, 400]
+- id: W36
+  label: '1'
+  from: TB1:T
+  to: PB_STOP:1
+  via:
+  - [700, 470]
+- {id: W37, label: '2', from: 'PB_STOP:2', to: 'J2A:T'}
+- {id: W38, label: '2', from: 'J2A:T', to: 'J2B:T'}
+- {id: W39, label: '2', from: 'J2B:T', to: 'J2C:T'}
+- {id: W40, label: '2', from: 'J2B:T', to: 'PB_START:1'}
+- {id: W41, label: '2', from: 'J2C:T', to: 'KM1:13'}
+- id: W42
+  label: '3'
+  from: PB_START:2
+  to: J3a:T
+  via:
+  - [910, 540]
+- {id: W43, label: '3', from: 'KM1:14', to: 'J3b:T'}
+- {id: W44, label: '3', from: 'J3a:T', to: 'J3b:T'}
+- {id: W45, label: '3', from: 'J3b:T', to: 'J3c:T'}
+- {id: W46, label: '3', from: 'J3c:T', to: 'J3d:T'}
+- {id: W47, label: '3', from: 'J3d:T', to: 'J3e:T'}
+- {id: W48, label: '3', from: 'J3a:T', to: 'KM1:A1'}
+- {id: W49, label: '3', from: 'J3c:T', to: 'KT:A1'}
+- {id: W50, label: '3', from: 'J3d:T', to: 'KT:15'}
+- {id: W51, label: '3', from: 'J3e:T', to: 'KT:17'}
+- {id: W52, label: '4', from: 'KT:16', to: 'KM2:21'}
+- {id: W53, label: 5S, from: 'KM2:22', to: 'KM3:A1'}
+- {id: W54, label: '6', from: 'KT:18', to: 'KM3:21'}
+- {id: W55, label: 7D, from: 'KM3:22', to: 'KM2:A1'}
+- {id: W56, label: '5', from: 'KM1:A2', to: 'J5a:T'}
+- {id: W57, label: '5', from: 'KT:A2', to: 'J5c:T'}
+- {id: W58, label: '5', from: 'KM3:A2', to: 'J5d:T'}
+- {id: W59, label: '5', from: 'KM2:A2', to: 'J5e:T'}
+- {id: W60, label: '5', from: 'J5a:T', to: 'J5c:T'}
+- {id: W61, label: '5', from: 'J5c:T', to: 'J5d:T'}
+- {id: W62, label: '5', from: 'J5d:T', to: 'J5e:T'}
+- {id: W63, label: '5', from: 'J5a:T', to: 'J5t:T'}
+- id: W64
+  label: '5'
+  from: J5t:T
+  to: OL:95
+  via:
+  - [1090, 470]
+- {id: W65, label: X2, from: 'OL:96', to: 'TB0:T'}
+loto:
+  isolators: [DS]
+  knownLive:
+  - ['DS:L1', 'DS:L2']
+  - ['DS:L2', 'DS:L3']
+  - ['DS:L1', 'DS:L3']
+  verifyPoints:
+  - ['DS:T1', 'DS:T2']
+  - ['DS:T2', 'DS:T3']
+  - ['DS:T1', 'DS:T3']
+  - ['DS:T1', 'PE:G']
+  - ['DS:T2', 'PE:G']
+  - ['DS:T3', 'PE:G']
+  - ['XF:X1', 'XF:X2']
+  tryStart: PB_START
+faults:
+- id: ol_open
+  target: OL
+  kind: nc_open
+  label: {fr: Contact 95-96 du relais de surcharge ouvert (défectueux), en: Overload 95-96 contact open (defective)}
+- id: km1_coil_open
+  target: KM1
+  kind: coil_open
+  label: {fr: Bobine du contacteur de ligne (KM1) ouverte, en: Line contactor (KM1) coil open}
+- id: km2_coil_open
+  target: KM2
+  kind: coil_open
+  label: {fr: Bobine du contacteur TRIANGLE (KM2) ouverte, en: DELTA contactor (KM2) coil open}
+- id: km3_coil_open
+  target: KM3
+  kind: coil_open
+  label: {fr: Bobine du contacteur ÉTOILE (KM3) ouverte, en: STAR contactor (KM3) coil open}
+- id: kt_coil_open
+  target: KT
+  kind: coil_open
+  label: {fr: Bobine du relais temporisé (KT) ouverte, en: Timer relay (KT) coil open}
+- id: kt_no_open
+  target: KT
+  kind: no_open
+  label: {fr: Contact temporisé 17-18 de KT défectueux (jamais de triangle), en: KT timed contact 17-18 defective (never reaches delta)}
+- id: km2_nc_open
+  target: KM2
+  kind: aux_nc_open
+  label: {fr: Contact NF 21-22 de KM2 ouvert (étoile impossible), en: KM2 NC 21-22 open (star impossible)}
+- id: km3_nc_open
+  target: KM3
+  kind: aux_nc_open
+  label: {fr: Contact NF 21-22 de KM3 ouvert (triangle impossible), en: KM3 NC 21-22 open (delta impossible)}
+- id: km2_welded
+  target: KM2
+  kind: welded
+  label: {fr: Contacts du contacteur TRIANGLE (KM2) soudés, en: DELTA contactor (KM2) contacts welded}
+- id: km3_welded
+  target: KM3
+  kind: welded
+  label: {fr: Contacts du contacteur ÉTOILE (KM3) soudés, en: STAR contactor (KM3) contacts welded}
+- id: f6_blown
+  target: F6
+  kind: blown
+  label: {fr: Fusible secondaire F6 grillé, en: Secondary fuse F6 blown}
+- id: f4_blown
+  target: F4
+  kind: blown
+  label: {fr: Fusible primaire F4 du transformateur grillé, en: CPT primary fuse F4 blown}

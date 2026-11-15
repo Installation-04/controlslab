@@ -1,0 +1,98 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: sc-05-deux-convoyeurs
+number: SC-0005
+title: Deux convoyeurs en séquence
+complaint: >-
+  « Quand on démarre les deux convoyeurs en même temps, les boîtes tombent sur un convoyeur encore arrêté et s'accumulent. À l'arrêt, le deuxième s'arrête avant d'avoir évacué les boîtes. Je veux un démarrage et un arrêt séquentiels. »
+context: >-
+  Le convoyeur d'alimentation CV1 est entraîné par le moteur du panneau (contacteur M). Le convoyeur d'évacuation CV2 est commandé directement par la sortie %QX1.0 (relais de terrain).
+  Au MARCHE : CV2 démarre tout de suite, CV1 démarre 3 secondes plus tard. À l'ARRÊT : CV1 s'arrête immédiatement, CV2 continue 8 secondes pour vider la ligne puis s'arrête.
+  L'arrêt d'urgence ou une surcharge coupent tout immédiatement.
+hints:
+  - Une mémoire de demande de marche (auto-maintien) alimente deux fonctions de temps différentes.
+  - >-
+    Démarrage retardé de CV1 : un TON (3 s) alimenté par la demande. Arrêt retardé de CV2 : un TOF (8 s) alimenté par la demande, dont la sortie Q reste vraie 8 s après la chute de la demande.
+  - >-
+    L'arrêt d'urgence et la surcharge ne doivent PAS passer par la temporisation : coupez CV2 directement avec ces conditions.
+editable: true
+entities:
+  - { id: PN1, type: panel, x: -1.6, z: -1.9, rot: 0, params: { machine: motor-starter-plc }, locked: true, name: Panneau de commande }
+  - { id: CV1, type: conveyor, x: -1.5, z: 0, rot: 0, params: { length: 3, drive: panel }, locked: true, name: Convoyeur d'alimentation }
+  - { id: CV2, type: conveyor, x: 1.5, z: 0, rot: 0, params: { length: 3, drive: direct }, io: { run: '%QX1.0' }, name: Convoyeur d'évacuation }
+  - { id: SP1, type: spawner, x: -2.7, z: 0, rot: 0, params: { intervalMs: 2500, max: 6, pattern: 'plastic,cardboard' }, locked: true }
+  - { id: BN1, type: bin, x: 3.15, z: 0, rot: 0, params: { size: 0.7 }, locked: true }
+plc:
+  starter: |
+    PROGRAM Main
+    VAR
+        Marche       AT %IX0.0 : BOOL;
+        Arret        AT %IX0.1 : BOOL;   (* NF : TRUE quand non appuyé *)
+        Surcharge    AT %IX0.2 : BOOL;
+        AU_OK        AT %IX0.3 : BOOL;
+        RetourM      AT %IX0.4 : BOOL;
+        BobineM      AT %QX0.0 : BOOL;   (* moteur de CV1 *)
+        VoyantMarche AT %QX0.1 : BOOL;
+        Conv2        AT %QX1.0 : BOOL;   (* relais du convoyeur CV2 *)
+    END_VAR
+
+    (* À compléter *)
+
+    END_PROGRAM
+  ldStarter:
+    v: 1
+    name: Main
+    vars:
+      - { name: Marche, type: BOOL, address: '%IX0.0' }
+      - { name: Arret, type: BOOL, address: '%IX0.1' }
+      - { name: Surcharge, type: BOOL, address: '%IX0.2' }
+      - { name: AU_OK, type: BOOL, address: '%IX0.3' }
+      - { name: RetourM, type: BOOL, address: '%IX0.4' }
+      - { name: BobineM, type: BOOL, address: '%QX0.0' }
+      - { name: VoyantMarche, type: BOOL, address: '%QX0.1' }
+      - { name: Conv2, type: BOOL, address: '%QX1.0' }
+    rungs: []
+  tests:
+    - id: t-demarrage
+      title: CV2 démarre d'abord, CV1 trois secondes plus tard
+      steps:
+        - { panelPress: PB_START }
+        - { run: 300 }
+        - { panelRelease: PB_START }
+        - { run: 1000 }
+        - { expectBelt: { id: CV2, running: true }, msg: CV2 doit démarrer immédiatement }
+        - { expectBelt: { id: CV1, running: false }, msg: CV1 doit attendre 3 secondes avant de démarrer }
+        - { run: 4000 }
+        - { expectBelt: { id: CV1, running: true }, msg: CV1 doit tourner après 3 secondes }
+        - { run: 30000 }
+        - { expectBin: { bin: BN1, min: 4 }, msg: Les boîtes doivent traverser les deux convoyeurs jusqu'au bac }
+        - { expectLost: { max: 0 } }
+    - id: t-arret
+      title: ARRÊT coupe CV1 tout de suite, CV2 après 8 secondes
+      steps:
+        - { panelPress: PB_START }
+        - { run: 300 }
+        - { panelRelease: PB_START }
+        - { run: 6000 }
+        - { panelPress: PB_STOP }
+        - { run: 300 }
+        - { panelRelease: PB_STOP }
+        - { run: 4000 }
+        - { expectBelt: { id: CV1, running: false }, msg: CV1 doit s'arrêter dès ARRÊT }
+        - { expectBelt: { id: CV2, running: true }, msg: CV2 doit continuer pour évacuer les boîtes }
+        - { run: 6000 }
+        - { expectBelt: { id: CV2, running: false }, msg: CV2 doit s'arrêter 8 secondes après ARRÊT }
+    - id: t-urgence
+      title: L'arrêt d'urgence coupe tout immédiatement
+      steps:
+        - { panelPress: PB_START }
+        - { run: 300 }
+        - { panelRelease: PB_START }
+        - { run: 6000 }
+        - { panelPress: PB_ES }
+        - { run: 500 }
+        - { expectOutput: { address: '%QX1.0', equals: false }, msg: CV2 ne doit pas attendre sa temporisation quand l'arrêt d'urgence est enfoncé }
+        - { expectOutput: { address: '%QX0.0', equals: false } }
+objectives:
+  - { type: plc_test, test: t-demarrage, label: Démarrage séquentiel (CV2 puis CV1) }
+  - { type: plc_test, test: t-arret, label: Arrêt séquentiel (CV1 puis CV2 après 8 s) }
+  - { type: plc_test, test: t-urgence, label: Arrêt d'urgence immédiat }

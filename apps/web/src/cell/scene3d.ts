@@ -12,6 +12,8 @@ export interface FrameState {
   items: Item[];
   belt: Record<string, number>;
   stroke: Record<string, number>;
+  level: Record<string, number>;
+  pump: Record<string, number>;
   pressed(id: string): boolean;
   inputs: Record<string, boolean>;
   outputs: Record<string, boolean | number>;
@@ -161,6 +163,40 @@ function build(e: EntityDef): Built {
         plate.position.x = reach;
         rod.scale.x = Math.max(0.001, reach);
         rod.position.x = reach / 2;
+      };
+      break;
+    }
+    case 'tank': {
+      const H = 1.0;
+      const shell = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, H, 28, 1, true), new THREE.MeshStandardMaterial({ color: 0x9fb4c7, transparent: true, opacity: 0.28, side: THREE.DoubleSide, roughness: 0.3 }));
+      shell.position.y = H / 2;
+      const liquidMat = new THREE.MeshStandardMaterial({ color: 0x2f8de4, transparent: true, opacity: 0.8 });
+      const liquid = new THREE.Mesh(new THREE.CylinderGeometry(0.385, 0.385, H, 28), liquidMat);
+      g.add(shell, liquid, cyl(0.4, 0.04, steel, 0, 0.02, 0), cyl(0.4, 0.04, steel, 0, H + 0.02, 0));
+      const lowAt = Number(p.lowAt);
+      const highAt = Number(p.highAt);
+      const probe = (at: number) => {
+        const m = mat(0x222222, { emissive: 0x000000 });
+        g.add(cyl(0.035, 0.07, m, 0.42, at * H, 0));
+        return m;
+      };
+      const lowM = probe(lowAt);
+      const highM = probe(highAt);
+      // Pump: motor + volute beside the tank, with a pipe into the tank.
+      const pumpBody = mat(0x5c6773, { emissive: 0x000000 });
+      const motor = cyl(0.09, 0.3, pumpBody, 0.62, 0.2, 0.0);
+      motor.rotation.z = Math.PI / 2;
+      g.add(motor, cyl(0.12, 0.12, steel, 0.46, 0.2, 0.0), cyl(0.03, 0.55, steel, 0.62, 0.45, 0), box(0.4, 0.03, 0.03, steel, 0.42, 0.72, 0));
+      update = (f) => {
+        const lv = Math.max(0.001, f.level[e.id] ?? 0);
+        liquid.scale.y = lv;
+        liquid.position.y = (H * lv) / 2;
+        const on = (f.pump[e.id] ?? 0) > 0.05;
+        pumpBody.emissive.set(on ? 0x2fb344 : 0x000000);
+        pumpBody.emissiveIntensity = on ? 0.6 : 0;
+        lowM.emissive.set(f.inputs[e.io?.low ?? ''] ? 0x37d67a : 0x000000);
+        highM.emissive.set(f.inputs[e.io?.high ?? ''] ? 0x37d67a : 0x000000);
+        liquidMat.color.set((f.level[e.id] ?? 0) >= 0.999 && on ? 0xe03131 : 0x2f8de4);
       };
       break;
     }

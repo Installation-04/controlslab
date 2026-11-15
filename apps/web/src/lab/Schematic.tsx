@@ -213,6 +213,54 @@ const SYMBOLS: Record<string, (c: PartCtx) => ReactNode> = {
       </g>
     );
   },
+  timed_nc: ({ state, tag }) => (
+    <g>
+      <polyline points="0,0 22,0" {...S} />
+      <polyline points="38,0 60,0" {...S} />
+      <polyline points="22,-10 22,10" {...S} />
+      <polyline points="38,-10 38,10" {...S} />
+      {state.ncClosed !== false && <line x1={22} y1={0} x2={38} y2={0} {...S} />}
+      <polyline points="17,-13 43,13" {...S} strokeWidth={1.2} />
+      <path d="M 24 -18 A 6 6 0 0 1 36 -18" {...S} strokeWidth={1.2} />
+      <text x={30} y={-24} className="sym-text" textAnchor="middle">{tag}</text>
+      <text x={30} y={26} className="sym-term" textAnchor="middle">15 – 16 (T)</text>
+    </g>
+  ),
+  timed_no: ({ state, tag }) => (
+    <g>
+      <polyline points="0,0 22,0" {...S} />
+      <polyline points="38,0 60,0" {...S} />
+      <polyline points="22,-10 22,10" {...S} />
+      <polyline points="38,-10 38,10" {...S} />
+      {state.noClosed === true && <line x1={22} y1={0} x2={38} y2={0} {...S} />}
+      <path d="M 24 -18 A 6 6 0 0 1 36 -18" {...S} strokeWidth={1.2} />
+      <text x={30} y={-24} className="sym-text" textAnchor="middle">{tag}</text>
+      <text x={30} y={26} className="sym-term" textAnchor="middle">17 – 18 (T)</text>
+    </g>
+  ),
+  motor6: ({ state }) => {
+    const speed = (state.speed as number) ?? 0;
+    const conn = state.conn === 'star' ? 'Y' : state.conn === 'delta' ? 'Δ' : '';
+    return (
+      <g>
+        {[0, 50, 100].map((x) => <polyline key={x} points={`${x},0 ${x},18`} {...S} />)}
+        <polyline points="0,90 0,66 28,66" {...S} />
+        <polyline points="50,90 50,76" {...S} />
+        <polyline points="100,90 100,66 72,66" {...S} />
+        <circle cx={50} cy={46} r={30} {...S} fill={speed > 0.05 ? 'var(--lit-soft)' : 'var(--surface)'} />
+        <g style={speed > 0.05 ? { transformOrigin: '50px 46px', animation: `spin ${Math.max(0.25, 1.2 - speed)}s linear infinite` } : undefined}>
+          <polyline points="50,22 50,70" {...S} strokeWidth={1} opacity={0.35} />
+        </g>
+        <text x={50} y={44} className="sym-text strong" textAnchor="middle">M1</text>
+        <text x={50} y={58} className="sym-text" textAnchor="middle">3~</text>
+        {['U1', 'V1', 'W1'].map((n, i) => <text key={n} x={i * 50 + 5} y={12} className="sym-term">{n}</text>)}
+        {['U2', 'V2', 'W2'].map((n, i) => <text key={n} x={i * 50 + 5} y={102} className="sym-term">{n}</text>)}
+        {conn && <text x={92} y={50} className="sym-state on">{conn}</text>}
+        {state.dir === 'fwd' && <text x={50} y={116} className="sym-state on" textAnchor="middle">↻ AV</text>}
+        {state.dir === 'rev' && <text x={50} y={116} className="sym-state off" textAnchor="middle">↺ AR</text>}
+      </g>
+    );
+  },
   transformer: ({ tag }) => (
     <g>
       <polyline points="0,0 0,10 " {...S} />
