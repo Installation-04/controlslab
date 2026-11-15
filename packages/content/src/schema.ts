@@ -175,7 +175,7 @@ export const CHECKPOINT_NO_HINTS = true;
 // ---------- Scenarios (3D cell) ----------
 const Rot = z.union([z.literal(0), z.literal(90), z.literal(180), z.literal(270)]);
 const ParamValue = z.union([z.number(), z.string(), z.boolean()]);
-export const EntityType = z.enum(['conveyor', 'spawner', 'photo', 'prox', 'pusher', 'button', 'light', 'stacklight', 'bin', 'panel']);
+export const EntityType = z.enum(['conveyor', 'spawner', 'photo', 'prox', 'pusher', 'button', 'light', 'stacklight', 'bin', 'tank', 'panel']);
 
 export const EntitySchema = z.object({
   id: Id,
@@ -202,6 +202,8 @@ export const CellStepSchema = z.union([
   z.object({ expectOutput: z.object({ address: z.string(), equals: z.boolean() }), msg: z.string().optional() }),
   z.object({ expectBelt: z.object({ id: z.string(), running: z.boolean() }), msg: z.string().optional() }),
   z.object({ expectLost: z.object({ max: z.number() }), msg: z.string().optional() }),
+  z.object({ expectLevel: z.object({ id: z.string(), min: z.number().optional(), max: z.number().optional() }), msg: z.string().optional() }),
+  z.object({ expectTank: z.object({ id: z.string(), maxOverflowMs: z.number().optional(), maxEmptyMs: z.number().optional() }), msg: z.string().optional() }),
 ]);
 
 export const CellTest = z.object({ id: Id, title: Localized, steps: z.array(CellStepSchema).min(1) });

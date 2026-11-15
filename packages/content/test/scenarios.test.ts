@@ -56,6 +56,32 @@ BobineM := Delai.Q;
 Conv2 := Vidange.Q AND AU_OK AND NOT Surcharge;
 VoyantMarche := RetourM;
 END_PROGRAM`,
+  'sc-06-pompe-reservoir': `PROGRAM Main
+VAR
+    Marche AT %IX0.0 : BOOL;
+    Arret AT %IX0.1 : BOOL;
+    Surcharge AT %IX0.2 : BOOL;
+    AU_OK AT %IX0.3 : BOOL;
+    RetourM AT %IX0.4 : BOOL;
+    BobineM AT %QX0.0 : BOOL;
+    VoyantMarche AT %QX0.1 : BOOL;
+    Bas AT %IX1.0 : BOOL;
+    Haut AT %IX1.1 : BOOL;
+    Vert AT %QX1.0 : BOOL;
+    Ambre AT %QX1.1 : BOOL;
+    Rouge AT %QX1.2 : BOOL;
+    Auto : BOOL;
+    Remplir : BOOL;
+END_VAR
+Auto := (Marche OR Auto) AND Arret AND NOT Surcharge AND AU_OK;
+IF NOT Bas THEN Remplir := TRUE; END_IF;
+IF Haut THEN Remplir := FALSE; END_IF;
+BobineM := Auto AND Remplir;
+VoyantMarche := RetourM;
+Vert := RetourM;
+Ambre := NOT Bas;
+Rouge := Surcharge;
+END_PROGRAM`,
   'sc-03-tri-metal': STARTER(
     `    DetMetal AT %IX1.0 : BOOL;
     DevantVerin AT %IX1.1 : BOOL;
@@ -124,6 +150,14 @@ describe('scenarios — model solutions pass, the starter does not', () => {
     expect(noDrain.tests.find((t) => t.id === 't-arret')!.pass).toBe(false);
     const slowEs = check('sc-05-deux-convoyeurs', sol.replace('Conv2 := Vidange.Q AND AU_OK AND NOT Surcharge', 'Conv2 := Vidange.Q'));
     expect(slowEs.tests.find((t) => t.id === 't-urgence')!.pass).toBe(false);
+  });
+
+  it('sc-06: a missing high-level stop and an ignored STOP are caught', () => {
+    const sol = SOLUTIONS['sc-06-pompe-reservoir']!;
+    const noStop = check('sc-06-pompe-reservoir', sol.replace('IF Haut THEN Remplir := FALSE; END_IF;', ''));
+    expect(noStop.tests.find((t) => t.id === 't-remplissage')!.pass).toBe(false);
+    const noAuto = check('sc-06-pompe-reservoir', sol.replace('BobineM := Auto AND Remplir;', 'BobineM := Remplir;'));
+    expect(noAuto.tests.find((t) => t.id === 't-arret')!.pass).toBe(false);
   });
 
   it('sc-01: a program that ignores the E-stop input is caught', () => {
