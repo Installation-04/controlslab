@@ -1,0 +1,71 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: etoile-triangle
+order: 9
+title:
+  fr: Le démarrage étoile-triangle
+  en: Star-delta starting
+summary: Réduire le courant de démarrage avec trois contacteurs, un relais temporisé et un moteur à six bornes.
+minutes: 40
+prerequisites: [inverseur-verrouillage]
+objectives:
+  - Expliquer pourquoi le démarrage étoile réduit le courant d'appel d'environ trois fois.
+  - Suivre la séquence KM1 + KM3 (étoile), temporisation, puis KM1 + KM2 (triangle).
+  - Diagnostiquer un démarreur qui reste bloqué en étoile ou qui perd sa vitesse au changement.
+blocks:
+  - type: text
+    md: |
+      Au démarrage, un moteur à cage d'écureuil tire de **5 à 7 fois** son courant nominal (courant rotor bloqué). Sur un gros moteur, ça fait chuter la tension du réseau
+      et peut faire sauter des protections. Le démarrage **étoile-triangle** réduit cet appel de courant sans ajouter d'électronique.
+
+      Le moteur a **six bornes** : U1-U2, V1-V2, W1-W2 (trois enroulements). Il doit être prévu pour que chaque enroulement supporte la **tension de ligne** (ici 600 V en triangle).
+
+      - "**Étoile (Y)** : U2, V2, W2 sont reliées ensemble. Chaque enroulement voit 600 / √3 ≈ **346 V**. Courant et couple tombent à environ **un tiers**."
+      - "**Triangle (Δ)** : U1-W2, V1-U2, W1-V2. Chaque enroulement voit les 600 V : pleine puissance."
+  - type: schematic
+    machine: star-delta-3w
+    caption: "KM1 = ligne. KM3 = étoile (court-circuite U2-V2-W2). KM2 = triangle. KT = relais temporisé."
+    highlight: [KM1, KM2, KM3, KT]
+  - type: callout
+    kind: safety
+    title: Jamais étoile ET triangle ensemble
+    md: Fermer KM2 et KM3 en même temps met les trois phases en court-circuit franc. Le câblage utilise des contacts **NF 21-22 croisés** (comme l'inverseur) et une **courte pause** entre l'ouverture de l'étoile et la fermeture du triangle, pour que l'arc de KM3 s'éteigne avant que KM2 colle.
+  - type: text
+    md: |
+      ## La séquence
+
+      1. **MARCHE** : KM1 (ligne) s'auto-maintient. KM3 (étoile) et KT (temporisé) s'alimentent par le contact NF de KM2.
+      2. Le moteur accélère en étoile (≈ 80 % de la vitesse, couple réduit).
+      3. Après la temporisation (ici **5 s**), KT ouvre son contact 15-16 : **KM3 retombe**.
+      4. Après la pause, KT ferme son contact 17-18 : **KM2 colle** (le NF de KM3 est alors refermé). Le moteur passe en triangle et atteint sa vitesse nominale.
+
+      > **Au changement**, le moteur tourne sans être alimenté pendant un court instant : il garde sa vitesse. Si la temporisation est trop courte, le moteur n'est pas assez rapide et on obtient un **second pic de courant** en passant en triangle.
+  - type: callout
+    kind: field
+    title: « Ça part, puis ça ralentit »
+    md: >-
+      Symptôme classique : le deuxième claquement se produit (KM3 retombe) mais KM2 ne colle pas. Le moteur est alors déconnecté et ralentit jusqu'à l'arrêt. Dans la rangée TRIANGLE, un élément est ouvert : contact 17-18 de KT, NF de KM3, bobine de KM2. Attendez la fin de la temporisation et mesurez **en travers** de chaque élément.
+  - type: quiz
+    id: q-yd-1
+    question: Pourquoi le courant de démarrage est-il environ trois fois plus faible en étoile?
+    choices:
+      - Parce que la fréquence est réduite
+      - Parce que chaque enroulement ne voit que 1/√3 de la tension, donc le courant de ligne est divisé par 3
+      - Parce que le moteur tourne plus vite
+      - Parce que le relais de surcharge limite le courant
+    answer: 1
+    explain: En étoile, chaque enroulement voit 346 V au lieu de 600 V. Le courant d'enroulement est divisé par √3, et comme en triangle le courant de ligne est √3 fois celui d'enroulement, le courant de ligne final est divisé par 3.
+  - type: quiz
+    id: q-yd-2
+    question: Quel est le rôle des contacts NF 21-22 de KM2 et KM3?
+    choices:
+      - Signaler la surcharge
+      - Interdire la fermeture simultanée de l'étoile et du triangle
+      - Maintenir KM1 collé
+      - Réarmer le relais temporisé
+    answer: 1
+    explain: Chaque contacteur bloque la bobine de l'autre. C'est le même principe que le verrouillage de l'inverseur de marche.
+  - type: practice
+    workorder: wo-012-etoile-triangle
+    label: Dépanner le démarreur qui perd sa vitesse
+references:
+  - "CSA C22.1 — Code canadien de l'électricité (moteurs et commandes), au besoin."

@@ -2,6 +2,11 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · Versions: [SemVer](https://semver.org/lang/fr/).
 
+## [Non publié / Unreleased]
+
+### Ajouté / Added
+- **Démarreur étoile-triangle** (`star-delta-3w`) : relais temporisé à l'excitation (`timer_relay`) et moteur à six bornes (`motor6`) dans le simulateur; courant de démarrage ≈ 1/3 en étoile, verrouillage NF croisé, changement après 5 s; leçon 9 et bon de travail BT-0012; symboles de schéma correspondants.
+
 ## [0.2.0] — Phase 2
 
 ### Ajouté / Added

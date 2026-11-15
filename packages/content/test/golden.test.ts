@@ -107,6 +107,27 @@ describe('work orders — model solutions pass, empty attempts fail', () => {
   });
 });
 
+describe('wo-012 star-delta troubleshooting', () => {
+  it('correct sequence passes; skipping LOTO fails', () => {
+    const solve = (withLoto: boolean) => {
+      const m = newMachine('star-delta-3w');
+      woById('wo-012-etoile-triangle').faults.forEach((f) => m.injectFault(f));
+      m.press('PB_START');
+      m.run(100);
+      m.release('PB_START');
+      m.run(6500);
+      m.measure('KT:17', 'KT:18', 'VAC');
+      m.recordDiagnosis('kt_no_open');
+      if (withLoto) lockOut(m);
+      m.replace('KT');
+      if (withLoto) restore(m);
+      return check('wo-012-etoile-triangle', m);
+    };
+    expect(failed(solve(true))).toEqual([]);
+    expect(solve(false).passed).toBe(false);
+  });
+});
+
 describe('co-simulation', () => {
   it('PLC drives the machine and the machine feeds the PLC', () => {
     const m = newMachine('motor-starter-plc');
