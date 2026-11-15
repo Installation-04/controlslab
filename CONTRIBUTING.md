@@ -7,7 +7,7 @@ Merci! Les leçons, machines et bons de travail sont des **données** (YAML) : o
 
 1. **Contenu 100 % original.** N'y copiez, ne collez et n'imitez aucun texte, schéma, code ou exercice d'une plateforme commerciale, d'un manuel protégé ou d'un cours existant. Vous écrivez avec vos mots, d'après votre expérience. En ouvrant une PR, vous confirmez être l'auteur et accepter la licence **AGPL-3.0**.
 2. **Pratique de terrain d'abord**, sécurité incluse : mesures réalistes, séquences correctes, pas de raccourcis dangereux présentés comme normaux.
-3. **Français québécois professionnel** comme langue de référence. L'anglais est optionnel : ajoutez-le au besoin avec `{ fr: ..., en: ... }`.
+3. **Français québécois professionnel** comme langue de référence. L'anglais est fourni par des **fichiers de traduction** `content/i18n/en/<dossier>/<même nom>.yaml` qui reprennent la structure du fichier français (voir ci-dessous); une machine peut aussi garder des champs `{ fr: ..., en: ... }`.
 4. **Branches** : travaillez sur une branche de fonctionnalité → PR vers **`dev`**. Les mainteneurs promeuvent `dev` → `beta` → `main`. Ne poussez jamais sur `main`. Une version est publiée (étiquette `vX.Y.Z`) quand `main` reçoit une nouvelle version dans `package.json`.
 5. Commits courts et descriptifs (`feat(content): …`, `fix(sim): …`).
 
@@ -248,7 +248,24 @@ Un **nouveau type d'appareil** demande du code : `packages/factory/src/types.ts`
 
 ## Traduire l'interface
 
-Les chaînes de l'interface sont dans `apps/web/src/strings.ts` (`s('français', 'english')`). Le texte des leçons/machines accepte `{ fr, en }`.
+Les chaînes de l'interface sont dans `apps/web/src/strings.ts` (`s('français', 'english')`). Le texte des machines accepte `{ fr, en }`.
+
+### Traduire une leçon, un bon de travail, un point de contrôle ou un scénario
+
+Créez `content/i18n/en/lessons/01-loi-ohm.yaml` (même dossier et même nom que le fichier source). Le fichier ne contient **que** les champs traduits, avec la même structure; les listes sont alignées par position (utilisez `~` pour sauter un élément). Exemple :
+
+```yaml
+summary: Voltage, current, resistance and power.
+objectives:
+  - Apply V = R × I and P = V × I.
+blocks:
+  - md: |
+      Every troubleshooting job starts with an **expectation**…
+  - ~
+  - { question: …, choices: [ … ], explain: … }
+```
+
+Un chemin absent du fichier source est une erreur (la traduction ne peut pas dériver en silence). Le test `English translation` échoue tant qu'un champ visible (titre, résumé, texte, question, choix, explication, plainte, contexte, indices, libellés d'objectifs, messages de test, noms d'entités) n'est pas traduit. Les programmes de départ (`starter`) et les blocs `code` restent tels quels.
 
 ## Avant d'ouvrir la PR
 

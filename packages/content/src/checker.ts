@@ -26,6 +26,8 @@ export interface CheckInput {
   def: MachineDef;
   /** The learner's ST program (plc work orders). */
   plcSource?: string;
+  /** Language of the step messages (default French). */
+  lang?: Lang;
 }
 
 export interface PlcTestResult {
@@ -35,7 +37,7 @@ export interface PlcTestResult {
 }
 
 /** Run a scripted PLC test on a clean, fault-free machine. */
-export function runPlcTest(def: MachineDef, source: string, test: PlcTest): PlcTestResult {
+export function runPlcTest(def: MachineDef, source: string, test: PlcTest, lang: Lang = 'fr'): PlcTestResult {
   const machine = new Machine(def);
   const sim = new CoSim(machine);
   const load = sim.load(source);
@@ -50,11 +52,11 @@ export function runPlcTest(def: MachineDef, source: string, test: PlcTest): PlcT
     else if ('expect' in step) {
       const st = machine.state<Record<string, unknown>>(step.expect.component);
       if (st[step.expect.key] !== step.expect.equals) {
-        failures.push(msg(step.msg) ?? `étape ${i + 1}: ${step.expect.component}.${step.expect.key} = ${String(st[step.expect.key])} (attendu ${String(step.expect.equals)})`);
+        failures.push(msg(step.msg, lang) ?? `étape ${i + 1}: ${step.expect.component}.${step.expect.key} = ${String(st[step.expect.key])} (attendu ${String(step.expect.equals)})`);
       }
     } else if ('expectOutput' in step) {
       const v = Boolean(sim.plc.getOutput(step.expectOutput));
-      if (v !== step.equals) failures.push(msg(step.msg) ?? `étape ${i + 1}: ${step.expectOutput} = ${v} (attendu ${step.equals})`);
+      if (v !== step.equals) failures.push(msg(step.msg, lang) ?? `étape ${i + 1}: ${step.expectOutput} = ${v} (attendu ${step.equals})`);
     }
     // let the machine settle between steps
     sim.run(20);
@@ -62,7 +64,8 @@ export function runPlcTest(def: MachineDef, source: string, test: PlcTest): PlcT
   return { pass: failures.length === 0, failures };
 }
 
-const msg = (l?: Localized) => (l === undefined ? undefined : typeof l === 'string' ? l : l.fr);
+export type Lang = 'fr' | 'en';
+const msg = (l?: Localized, lang: Lang = 'fr') => (l === undefined ? undefined : typeof l === 'string' ? l : lang === 'en' ? (l.en ?? l.fr) : l.fr);
 
 const measures = (events: SimEvent[]) =>
   events.flatMap((e) => (e.type === 'measure' ? [e.reading] : []));
@@ -110,7 +113,7 @@ export function checkObjective(o: Objective, input: CheckInput): ObjectiveResult
       const test = order.plc?.tests.find((t) => t.id === o.test);
       if (!test) return ok(false, `test inconnu: ${o.test}`);
       if (input.plcSource === undefined) return ok(false, 'aucun programme');
-      const r = runPlcTest(input.def, input.plcSource, test);
+      const r = runPlcTest(input.def, input.plcSource, test, input.lang);
       return ok(r.pass, r.loadError ?? r.failures.join(' | '));
     }
   }
@@ -223,10 +226,11 @@ export interface ScenarioResult extends CheckResult {
 }
 
 /** Run every scripted test of a scenario against the learner's program, each on a fresh cell. */
-export function checkScenario(scenario: Scenario, entities: EntityDef[], machines: Record<string, MachineDef>, source: string): ScenarioResult {
+export function checkScenario(scenario: Scenario, entities: EntityDef[], machines: Record<string, MachineDef>, source: string, lang: Lang = 'fr'): ScenarioResult {
   const tests = scenario.plc.tests.map((t) => {
     const runner = new CellRunner({ entities: structuredClone(entities), machines, faults: scenario.faults }, source);
-    const r = runner.playScript(t.steps as never);
+    const steps = t.steps.map((st) => ('msg' in st && st.msg !== undefined ? { ...st, msg: msg(st.msg, lang) } : st));
+    const r = runner.playScript(steps as never);
     return { id: t.id, ...r };
   });
   const objectives: ObjectiveResult[] = scenario.objectives.map((o) => {

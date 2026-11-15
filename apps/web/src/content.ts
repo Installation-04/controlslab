@@ -13,6 +13,19 @@ const bundled = import.meta.glob('@content/{lessons,workorders,checkpoints,machi
   eager: true,
 }) as Record<string, string>;
 
+/** English overlays: content/i18n/en/<dir>/<same file name>. */
+const overlays = import.meta.glob('@content/i18n/en/{lessons,workorders,checkpoints,machines,scenarios}/*.yaml', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+}) as Record<string, string>;
+const overlayFor = (path: string): string | undefined => {
+  const m = /(lessons|workorders|checkpoints|machines|scenarios)\/([^/]+\.yaml)$/.exec(path);
+  if (!m) return undefined;
+  const key = Object.keys(overlays).find((k) => k.endsWith(`/i18n/en/${m[1]}/${m[2]}`));
+  return key ? overlays[key] : undefined;
+};
+
 export interface Registry {
   lessons: Lesson[];
   workorders: WorkOrder[];
@@ -36,9 +49,9 @@ function read(): Record<string, string> {
 
 function build(): Registry {
   const reg: Registry = { lessons: [], workorders: [], checkpoints: [], machines: [], scenarios: [], local: new Set(), errors: [] };
-  const add = (name: string, text: string, isLocal: boolean) => {
+  const add = (name: string, text: string, isLocal: boolean, en?: string) => {
     try {
-      const p = parseContent(text);
+      const p = parseContent(text, en);
       const list = { lesson: reg.lessons, workorder: reg.workorders, checkpoint: reg.checkpoints, machine: reg.machines, scenario: reg.scenarios }[p.kind] as Array<{ id: string }>;
       const i = list.findIndex((x) => x.id === p.id);
       if (i >= 0) list.splice(i, 1); // user content overrides bundled content with the same id
@@ -48,7 +61,7 @@ function build(): Registry {
       reg.errors.push(`${name}: ${(e as Error).message}`);
     }
   };
-  for (const [path, text] of Object.entries(bundled)) add(path, text, false);
+  for (const [path, text] of Object.entries(bundled)) add(path, text, false, overlayFor(path));
   for (const [name, text] of Object.entries(read())) add(name, text, true);
   reg.lessons.sort((a, b) => a.order - b.order);
   reg.workorders.sort((a, b) => a.number.localeCompare(b.number));

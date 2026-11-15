@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+title: A lamp will not light
+complaint: '"Lamp 2 stays off even when I turn on switch 2. The others work. The bulb is new."'
+context: Turn on switch 2 and find out why the lamp is off. A single branch that does not work points to that branch, not to the fuse or the supply.
+hints:
+- Measure the voltage across lamp 2. A 0 V can mean "no voltage" OR "voltage present on both sides".
+- Measure each lamp terminal relative to ground (PE). An open neutral leaves the neutral terminal at ≈ 120 V instead of 0 V.
+- 'The fault is a wire, not a component: it is replaced under lockout.'
+objectives:
+- label: Switch 2 on to reproduce the problem
+- label: Voltage on the neutral side of the lamp relative to ground (≈ 120 V = open neutral)
+- label: Correct diagnosis
+- label: Complete lockout and verification
+- label: Neutral wire replaced
+- label: Fault cleared
+- label: Return to service
+- label: No safety violation

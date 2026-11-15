@@ -1,0 +1,74 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+title: Program the reversing starter (with interlock)
+complaint: '"The reversing starter is wired to the PLC but it has no program. I want FORWARD, REVERSE and STOP, without ever closing both contactors at the same time."'
+context: 'The wiring keeps a hardware interlock (cross-wired NC contacts, emergency stop and overload in series with the coils), but the program must ALSO prevent commanding both coils: we never rely on a single level of protection. To change direction, STOP must be pressed first. If both buttons are pressed at the same time, FORWARD has priority. The pilot lights follow the contactor feedback (RetourKF / RetourKR).'
+hints:
+- Each direction is a seal-in (like BT-0005) with, in addition, "AND NOT the other coil".
+- 'Order of the rungs: if BobineKF is computed before BobineKR, KF wins when both buttons arrive together.'
+- 'The lights: VoyantAvant := RetourKF; VoyantArriere := RetourKR.'
+plc:
+  tests:
+  - title: FORWARD starts the motor in the right direction and the light follows
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - msg: The FORWARD contactor must stay pulled in after release (seal-in)
+    - null
+    - msg: The motor must run forward
+    - msg: The FORWARD light must follow the feedback of contactor KF
+  - title: REVERSE starts the motor in the opposite direction
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - msg: The REVERSE contactor must stay pulled in after release
+    - msg: The motor must run in reverse
+    - msg: The REVERSE light must follow the feedback of contactor KR
+  - title: Impossible to reverse without STOP (software interlock)
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - msg: The program must NEVER command KR while KF is active (software interlock, in addition to the wiring)
+    - msg: The FORWARD direction must continue
+  - title: Two buttons at the same time, FORWARD has priority
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - msg: FORWARD must win when both buttons arrive together
+    - msg: Both coils must never be commanded together
+  - title: STOP then change of direction
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - msg: STOP must drop the FORWARD coil
+    - null
+    - null
+    - null
+    - null
+    - msg: After STOP, REVERSE must be able to start
+objectives:
+- label: Forward running
+- label: Reverse running
+- label: Software interlock between the two directions
+- label: FORWARD has priority on simultaneous presses
+- label: STOP then reversal

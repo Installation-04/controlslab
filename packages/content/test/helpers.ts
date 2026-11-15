@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { Machine, type MachineDef } from '@controlslab/sim';
 import { parseContent, type Checkpoint, type Lesson, type Scenario, type WorkOrder } from '../src';
@@ -9,7 +9,8 @@ function loadDir<T>(dir: string, kind: string): Array<{ file: string; data: T }>
   return readdirSync(root + dir)
     .filter((f) => f.endsWith('.yaml'))
     .map((file) => {
-      const p = parseContent(readFileSync(`${root}${dir}/${file}`, 'utf8'));
+      const enPath = `${root}i18n/en/${dir}/${file}`;
+      const p = parseContent(readFileSync(`${root}${dir}/${file}`, 'utf8'), existsSync(enPath) ? readFileSync(enPath, 'utf8') : undefined);
       if (p.kind !== kind) throw new Error(`${file}: expected ${kind}, got ${p.kind}`);
       return { file, data: p.data as T };
     });

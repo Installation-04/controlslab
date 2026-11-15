@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+title: The reversing starter only runs in reverse
+complaint: '"The reversible conveyor runs in reverse, but when I press FORWARD, nothing happens. The contactor does not click."'
+context: Hardwired reversing starter (contactors KF forward and KR reverse). Contactor KF does not pull in when FORWARD is pressed. Remember that each contactor is interlocked by the NC contact of the **other** contactor.
+hints:
+- No click = coil KF does not receive its 120 V. Which elements are in series with it?
+- In the FORWARD circuit there is the NC contact 21-22 of KR. Hold FORWARD and measure across that contact.
+- '120 V across a "normally closed" contact: it is open even though KR is released.'
+objectives:
+- label: Voltage across the NC contact 21-22 of KR (FORWARD held)
+- label: Correct diagnosis
+- label: Complete lockout before the work
+- label: Contactor KR replaced
+- label: Fault cleared
+- label: Return to service
+- label: No safety violation

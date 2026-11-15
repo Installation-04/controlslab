@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+title: Checkpoint 2 — Reversing starter troubleshooting
+intro: 'A fault has been introduced at random on the **reversing starter** (two contactors, electrical interlock). **No hints** are offered. Find the cause through your measurements, **diagnose**, lock out, repair, then return to service. Passing grade: 80%.'

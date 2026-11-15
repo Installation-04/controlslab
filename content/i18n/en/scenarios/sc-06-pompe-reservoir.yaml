@@ -1,0 +1,54 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+title: Tank level control
+complaint: '"The process water tank runs empty during production and overflows when someone forgets to stop the pump. I want automatic filling: the pump starts when the level is low and stops when it is high."'
+context: 'The pump is driven by the panel motor (contactor M). The tank consumes water continuously. The low-level sensor is on %IX1.0 and the high-level sensor on %IX1.1 (true = the liquid reaches the sensor). The stack light: green %QX1.0 (pump running), amber %QX1.1 (low level), red %QX1.2 (overload). The panel START button enables automatic mode, STOP disables it.'
+hints:
+- 'You need hysteresis, like a thermostat: a "Remplir" memory is set to 1 when the level is low and reset to 0 when the level is high. In between, it keeps its state.'
+- Coil M is true only if automatic mode is enabled (START/STOP seal-in) AND Remplir is 1.
+- The low sensor is true when the liquid is present at its level; "low level" therefore means NOT Bas.
+entities:
+- name: Pump panel
+- name: Tank
+plc:
+  tests:
+  - title: The pump fills the tank up to the high level without overflowing
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - msg: The pump must fill the tank when the level is low
+    - msg: The tank must never overflow
+  - title: Continuous regulation between the low and high levels
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - msg: The level must stay between the two sensors, with no overflow and no dry running
+    - null
+    - msg: The amber light (low level) must not stay on in normal regulation
+  - title: STOP and the emergency stop cut the pump
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - msg: The pump must run when the level is low
+    - null
+    - null
+    - null
+    - null
+    - msg: STOP must cut the pump even if the level is low
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - msg: The emergency stop must cut the pump
+objectives:
+- label: Filling without overflow
+- label: Hysteresis regulation
+- label: Normal stop and emergency stop
