@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+id: wo-012-etoile-triangle
+number: BT-0012
+title: Le moteur démarre puis perd sa vitesse
+machine: star-delta-3w
+priority: urgent
+complaint: « Sur MARCHE, ça part, on entend le contacteur... puis après quelques secondes un deuxième claquement et la pompe ralentit jusqu'à s'arrêter. »
+context: Compresseur 5 HP, 600 V, démarreur étoile-triangle. Le relais de surcharge n'est pas déclenché. Le moteur n'a jamais atteint sa pleine vitesse depuis hier.
+requiresDiagnosis: true
+hints:
+  - Le « deuxième claquement » est le contacteur ÉTOILE (KM3) qui retombe à la fin de la temporisation. Que devrait-il se passer à ce moment-là?
+  - Après la temporisation, le contact 17-18 de KT doit se fermer pour alimenter la bobine du contacteur TRIANGLE (KM2). Appuyez sur MARCHE, attendez plus de 5 s, puis mesurez en travers de ce contact.
+  - 120 V en travers d'un contact qui devrait être fermé = contact ouvert.
+faults: [kt_no_open]
+objectives:
+  - { type: measured, points: ['KT:17', 'KT:18'], mode: VAC, min: 100, label: Mesure en travers du contact temporisé 17-18 après la temporisation (120 V attendus s'il est ouvert) }
+  - { type: diagnosis, label: Diagnostic correct }
+  - { type: loto_step, step: verify, label: Cadenassage complet avant l'intervention }
+  - { type: replaced, target: KT, label: Relais temporisé remplacé }
+  - { type: faults_cleared, label: Défaut corrigé }
+  - { type: loto_step, step: restore, label: Remise en service }
+  - { type: no_violation, label: Aucune faute de sécurité }

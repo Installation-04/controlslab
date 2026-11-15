@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+title: The motor will not start
+complaint: '"I press START and nothing happens. The light does not come on and the contactor does not even click."'
+context: 5 HP, 600 V pump motor. No visible trip. The breaker is closed.
+hints:
+- No contactor "clack" = the coil does not receive its 120 V. Measure across the contacts in series with the coil, START pressed.
+- Where does the full voltage appear in a series circuit? Across the open element.
+- An overload contact can be defective even if the relay has not tripped.
+objectives:
+- label: Measurement across contact 95-96 (120 V expected if open)
+- label: Correct diagnosis
+- label: Complete lockout before the work
+- label: Overload relay replaced
+- label: Fault cleared
+- label: Return to service
+- label: No safety violation

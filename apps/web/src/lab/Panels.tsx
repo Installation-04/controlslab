@@ -78,7 +78,7 @@ export function StationPanel({ machine, rev, api }: { machine: Machine; rev: num
   const { t, loc, lang } = useT();
   void rev;
   const def = machine.def;
-  const mtr = def.components.find((c) => c.type === 'motor3');
+  const mtr = def.components.find((c) => c.type === 'motor3' || c.type === 'motor6');
   const ms = mtr ? machine.state<{ state: string; speed: number; dir?: string }>(mtr.id) : null;
   const ol = def.components.find((c) => c.type === 'overload');
   const olS = ol ? machine.state<{ tripped: boolean; heat: number }>(ol.id) : null;

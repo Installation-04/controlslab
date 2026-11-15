@@ -1,0 +1,45 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+summary: Wire numbers, symbols, 3-wire logic — follow the current from wire 1 to X2.
+objectives:
+- 'Recognize the symbols: disconnect, fuse, contactor, overload relay, pushbuttons, pilot lights.'
+- Follow the current path in the control circuit and explain the seal-in.
+- Use wire numbers to choose where to measure.
+blocks:
+- md: |
+    A schematic is not a photograph: it shows the **logic** (what controls what), not the physical position. Two conventions to know:
+
+    - **Power at the top or on the left**, control beside it, often as a ladder between two rails: here wire **1** (120 V) and **X2** (secondary neutral).
+    - A **same wire number** designates the same electrical point: all wires numbered 4 are at the same potential (unless they pass through an open contact!).
+- caption: 3-wire starter. The control circuit is in the lower half.
+- md: |
+    ## Following the current
+
+    From **1** (CPT secondary, through F6) to **X2**:
+
+    1. **PB1 STOP (NC)**: normally closed, it lets current through. The wire becomes **2**.
+    2. **E-stop (NC)**: closed, the wire becomes **3**.
+    3. **PB2 START (NO)**: open at rest. Pressed, it connects 3 to **4**.
+    4. **Auxiliary contact M 13-14 (NO)**, in parallel with START: once the contactor is pulled in, it closes and **holds** the coil even when START is released. This is the **seal-in**.
+    5. **Coil M (A1-A2)**, wire 4 then 5.
+    6. **Overload contact OL 95-96 (NC)**, wire 5 to **X2**.
+
+    If **any** series contact opens (STOP, E-stop, 95-96), the coil drops out and the seal-in is undone: the motor does not restart on its own. This is the principle of **low-voltage protection** (voltage returning ≠ restart).
+- title: Why stop buttons are NC
+  md: 'If a wire breaks or a contact comes loose, the circuit opens and the machine **stops**. A stop wired as NO would do nothing if the wire were cut: this is positive safety (fail-safe).'
+- question: You hold START, the motor starts, you release and it stops. Which element is the most likely?
+  choices:
+  - The overload contact
+  - The seal-in contact M 13-14
+  - The STOP button
+  - The main fuse
+  explain: 'As long as START is held, the coil is fed through START. On release, only 13-14 can hold it: if it does not close (worn contact, wiring), the motor drops out.'
+- question: On the schematic, what is the purpose of contact M 13-14?
+  choices:
+  - To power the motor
+  - To keep the coil energized after START is released
+  - To protect against overloads
+  - To light the overload pilot light
+- label: Start the motor and read the voltage at the coil
+references:
+- The machine schematic, file content/machines/motor-starter-3w.yaml (open format).

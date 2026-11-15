@@ -28,8 +28,39 @@ const MachineShape = z
 
 export class ContentError extends Error {}
 
+/**
+ * Merge an English overlay into a French document. The overlay mirrors the document's structure and only
+ * carries translated strings: a string in both becomes `{ fr, en }`; arrays are aligned by index (use `~` or
+ * omit a position to leave it untouched); a path that does not exist in the document is an error, so an overlay
+ * can never drift silently from its source.
+ */
+export function mergeTranslation(base: unknown, en: unknown, path = ''): unknown {
+  if (en === undefined || en === null) return base;
+  if (typeof base === 'string') {
+    if (typeof en !== 'string') throw new ContentError(`i18n ${path || '(racine)'}: une chaîne est attendue`);
+    return { fr: base, en };
+  }
+  if (Array.isArray(base)) {
+    if (!Array.isArray(en)) throw new ContentError(`i18n ${path}: une liste est attendue`);
+    if (en.length > base.length) throw new ContentError(`i18n ${path}: ${en.length} éléments pour ${base.length} dans la source`);
+    return base.map((b, i) => mergeTranslation(b, en[i], `${path}[${i}]`));
+  }
+  if (base && typeof base === 'object') {
+    if (typeof en !== 'object' || Array.isArray(en)) throw new ContentError(`i18n ${path}: un objet est attendu`);
+    const b = base as Record<string, unknown>;
+    if ('fr' in b) return b; // already localized in the source
+    const out: Record<string, unknown> = { ...b };
+    for (const [k, v] of Object.entries(en as Record<string, unknown>)) {
+      if (!(k in b)) throw new ContentError(`i18n ${path ? path + '.' : ''}${k}: chemin absent de la source`);
+      out[k] = mergeTranslation(b[k], v, `${path ? path + '.' : ''}${k}`);
+    }
+    return out;
+  }
+  throw new ContentError(`i18n ${path}: ce champ n'est pas traduisible`);
+}
+
 /** Parse + validate one YAML document; the kind is detected from its shape. */
-export function parseContent(yamlText: string): ParsedContent {
+export function parseContent(yamlText: string, enOverlay?: string): ParsedContent {
   let raw: unknown;
   try {
     raw = parseYaml(yamlText);
@@ -37,6 +68,15 @@ export function parseContent(yamlText: string): ParsedContent {
     throw new ContentError(`YAML invalide: ${(e as Error).message}`);
   }
   if (!raw || typeof raw !== 'object') throw new ContentError('Document vide ou invalide');
+  if (enOverlay) {
+    let en: unknown;
+    try {
+      en = parseYaml(enOverlay);
+    } catch (e) {
+      throw new ContentError(`YAML anglais invalide: ${(e as Error).message}`);
+    }
+    raw = mergeTranslation(raw, en);
+  }
   const o = raw as Record<string, unknown>;
   const [kind, schema]: [ContentKind, z.ZodTypeAny] =
     'blocks' in o ? ['lesson', Lesson]

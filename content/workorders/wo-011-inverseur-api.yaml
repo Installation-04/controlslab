@@ -112,10 +112,10 @@ plc:
         - { wait: 100 }
         - { release: PB_REV }
         - { wait: 600 }
-        - { expect: { component: KR, key: energized, equals: true }, msg: Après ARRÊT, ARRIÈRE doit pouvoir démarrer }
+        - { expect: { component: KR, key: energized, equals: true }, msg: "Après ARRÊT, ARRIÈRE doit pouvoir démarrer" }
 objectives:
-  - { type: plc_test, test: t-avant, label: Marche avant, auto-maintien et voyant }
-  - { type: plc_test, test: t-arriere, label: Marche arrière, auto-maintien et voyant }
+  - { type: plc_test, test: t-avant, label: "Marche avant, auto-maintien et voyant" }
+  - { type: plc_test, test: t-arriere, label: "Marche arrière, auto-maintien et voyant" }
   - { type: plc_test, test: t-verrouillage, label: Verrouillage logiciel entre les deux sens }
   - { type: plc_test, test: t-simultane, label: Priorité à AVANT si appuis simultanés }
   - { type: plc_test, test: t-arret-inverse, label: ARRÊT puis inversion }

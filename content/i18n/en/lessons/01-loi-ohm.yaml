@@ -1,0 +1,50 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+summary: Voltage, current, resistance and power — and what they mean when you hold a multimeter in front of a contactor.
+objectives:
+- Apply V = R × I and P = V × I to predict what a circuit should measure.
+- Tell the resistance measured cold (ohmmeter) from the real current in service.
+- Predict the voltage across an open element in a series circuit.
+blocks:
+- md: |
+    Every troubleshooting job starts with an **expectation**: "what should I be reading here?" If you cannot predict the measurement, you cannot recognize a faulty one. Ohm's law is the tool that gives you that expectation.
+
+    - **V**: voltage in volts (V), the "pressure" that pushes the current.
+    - **I**: current in amperes (A), the flow of charge.
+    - **R**: resistance in ohms (Ω), the opposition to current.
+    - **P**: power in watts (W).
+
+    **V = R × I**  ·  **I = V ÷ R**  ·  **R = V ÷ I**  ·  **P = V × I**
+- null
+- title: The 6 W pilot light
+  md: 'A 6 W, 120 V pilot light draws I = P ÷ V = 6 ÷ 120 = **50 mA**. Its resistance in service is therefore R = 120 ÷ 0.05 = **2,400 Ω** (the cold filament reads only about a tenth of that on an ohmmeter). A 2 A fuse on the control transformer secondary protects the wiring, not the lamp: it will never blow because of a pilot-light overload.'
+- question: A 120 V contactor coil draws 67 mA in service. What is its approximate impedance?
+  choices:
+  - 8 Ω
+  - 110 Ω
+  - 1,800 Ω
+  - 18,000 Ω
+  explain: R = V ÷ I = 120 ÷ 0.067 ≈ 1,800 Ω. But on an ohmmeter (direct current) the same coil reads only about 110 Ω, because inductance plays no part there. That is normal; do not declare the coil defective on that basis alone.
+- md: |
+    ## Series circuit: where does the voltage go?
+
+    In a series circuit, **the same current** flows through every element and the voltage divides in proportion to the resistances. In our 3-wire control circuit, the coil, the overload contact, the STOP button and the fuse are in series:
+
+    - All closed: the contacts have a resistance of a few milliohms, so they "drop" almost 0 V. The full voltage (120 V) appears **across the coil**.
+    - An **open** contact has an almost infinite resistance: it takes the whole voltage (120 V across it) and the coil gets 0 V.
+
+    > **The troubleshooter's golden rule**: in a series circuit, the source voltage appears across the open element.
+    > Measure across contacts, not only "wire to ground".
+- question: The motor will not start. You read 120 V between terminals 95 and 96 of the overload relay and 0 V across the coil. What do you conclude?
+  choices:
+  - The coil is burnt out
+  - Contact 95-96 is open
+  - The secondary fuse is blown
+  - The control transformer is defective
+  explain: 120 V across a "normally closed" contact means that contact is open. If the fuse or the transformer were at fault, you would not have 120 V available that far. A burnt coil would leave the 120 V across its own terminals.
+- title: The numbers that kill
+  md: Current does the damage, not voltage alone. A few tens of milliamperes through the chest are enough to cause fibrillation. A wet hand on 120 V can let enough through. Treat **every** conductor as live until proven otherwise.
+- title: Round numbers
+  md: 'In the field we round: 600 V three-phase ÷ 1.732 ≈ 347 V between a phase and ground; 5 HP at 600 V ≈ 5.2 A full load; 120 V ÷ 8 VA ≈ 67 mA for a NEMA 1 contactor.'
+references:
+- Your training manual or the motor nameplate for full-load currents.

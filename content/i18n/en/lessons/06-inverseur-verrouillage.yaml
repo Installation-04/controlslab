@@ -1,0 +1,50 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+summary: Two contactors, two swapped phases, and why an NC contact can prevent a short circuit.
+objectives:
+- Explain how swapping two phases reverses the rotation direction of a three-phase motor.
+- Read a control circuit with electrical interlocking through cross-wired NC contacts.
+- Predict what happens when an interlock is defective, and diagnose it with the multimeter.
+blocks:
+- md: |
+    A three-phase motor turns in the direction set by the **phase sequence** (L1-L2-L3). If you **swap two phases**, the rotating field changes direction and the motor runs backwards. A reversing starter does this with **two contactors**:
+
+    - **KF** (forward): L1 → T1, L2 → T2, L3 → T3.
+    - **KR** (reverse): L1 → T1, **L3 → T2, L2 → T3** — two phases swapped.
+
+    Both contactors feed the same motor. **If they were closed at the same time, phases L2 and L3 would be short-circuited** to each other through the contacts: thousands of amperes, blown fuses, welded contacts, arc-flash risk. Hence the **interlock**.
+- caption: Hardwired reversing starter. KR swaps L2 and L3 (wires L3B and L2B). The NC 21-22 contacts are in the control rungs.
+- title: A phase-to-phase short circuit is a potential arc
+  md: An interlock failure can cause an electric arc inside the enclosure. Lockout and verification of absence of voltage remain mandatory before opening a reversing-starter panel, **even if the motor is stopped**.
+- md: |
+    ## The electrical interlock
+
+    In the 3-wire control circuit of lesson 4, we add an **NC 21-22 contact of the opposite contactor** in series with each coil:
+
+    - FORWARD rung: `STOP → [FORWARD ∥ KF 13-14] → KR 21-22 (NC) → coil KF → OL 95-96`
+    - REVERSE rung: `STOP → [REVERSE ∥ KR 13-14] → KF 21-22 (NC) → coil KR → OL 95-96`
+
+    When KF pulls in, **its** NC contact opens the REVERSE rung: KR can no longer pull in. And vice versa. Even if the operator presses both buttons, only one contactor wins. To **change direction** you must therefore press STOP first (the motor slows down), then the other button.
+
+    > **Plugging**: reversing a motor that is still turning brakes it violently before it restarts in the other direction
+    > (high current, mechanical stress). That is why STOP is required, and sometimes a delay.
+- title: '"FORWARD won''t start, REVERSE does"'
+  md: 'Classic symptom: the KF coil does not click in. The 120 V is missing at its coil. In the FORWARD rung, one of the series elements is open, including the **NC 21-22 contact of KR**. Hold FORWARD and measure **across** each element: 120 V across a contact that is closed at rest = that contact is open.'
+- question: Why is the NC contact that interlocks the FORWARD rung the one from KR and not the one from KF?
+  choices:
+  - Because KF has no NC contact
+  - To prevent KF from pulling in when KR is already pulled in
+  - So that KF seals itself in
+  - To protect the motor against overloads
+  explain: Each contactor blocks the other. KR (pulled in) opens its NC in the FORWARD rung, so the KF coil cannot be energized.
+- question: Only one of the two interlock contacts is stuck closed (defective). What happens when you press REVERSE during forward running?
+  choices:
+  - An immediate phase-to-phase short circuit
+  - 'Contactor KR pulls in, which opens KR''s NC in the FORWARD rung and drops KF out: the motor brakes then reverses'
+  - Nothing happens
+  - The motor stops and never restarts
+  explain: With a single faulty interlock, the other one still protects. To get a short circuit, both interlocks must fail. Hence the importance of testing interlocks periodically, and of duplicating them in the program when a PLC is used.
+- label: Troubleshoot the reversing starter that only runs in reverse
+- label: Program the reversing starter with a software interlock
+references:
+- CSA C22.1 — Canadian Electrical Code (motors and controls), as needed.

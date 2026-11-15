@@ -82,6 +82,6 @@ plc:
         - { expectBelt: { id: CV1, running: false } }
         - { expectOutput: { address: '%QX0.0', equals: false }, msg: Le programme doit aussi retomber quand l'arrêt d'urgence est enfoncé }
 objectives:
-  - { type: plc_test, test: t-marche, label: Démarrage, auto-maintien et livraison des boîtes }
+  - { type: plc_test, test: t-marche, label: "Démarrage, auto-maintien et livraison des boîtes" }
   - { type: plc_test, test: t-arret, label: Arrêt normal }
   - { type: plc_test, test: t-urgence, label: Arrêt d'urgence respecté }

@@ -1,0 +1,48 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+title: Start and stop a conveyor
+complaint: '"The packing-line conveyor is installed and wired, but it has no program. I want to start and stop it with the panel buttons."'
+context: The conveyor is driven by the panel motor (contactor M). Boxes arrive from a dispenser and fall into a bin. Build the seal-in of coil M in the PLC. Open the panel to press START / STOP.
+hints:
+- 'It is the same starter as lesson 5: output %QX0.0 drives the coil of contactor M.'
+- The conveyor only moves if the motor really turns — the contactor must be pulled in.
+- After STOP, the motor still turns a little by inertia.
+entities:
+- name: Control panel
+plc:
+  tests:
+  - title: The conveyor starts, keeps running and delivers the boxes
+    steps:
+    - msg: The conveyor must not run before START is pressed
+    - null
+    - null
+    - null
+    - null
+    - msg: The conveyor must run after START and keep running once the button is released (seal-in)
+    - null
+    - msg: At least 5 boxes should have reached the bin after 30 seconds of running
+  - title: STOP brings the conveyor to a halt
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - msg: The conveyor must stop after STOP (let the motor finish coasting)
+  - title: The emergency stop cuts the control
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - msg: The program must also drop out when the emergency stop is pressed
+objectives:
+- label: Start, seal-in and box delivery
+- label: Normal stop
+- label: Emergency stop respected

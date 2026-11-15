@@ -1,0 +1,46 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+summary: Reduce the starting current with three contactors, a timer relay and a six-terminal motor.
+objectives:
+- Explain why star starting reduces the inrush current by about three times.
+- Follow the sequence KM1 + KM3 (star), delay, then KM1 + KM2 (delta).
+- Diagnose a starter that stays stuck in star or loses speed at changeover.
+blocks:
+- md: |
+    At start-up, a squirrel-cage motor draws **5 to 7 times** its rated current (locked-rotor current). On a large motor this makes the supply voltage sag and can trip protective devices. **Star-delta** starting reduces this inrush without adding any electronics.
+
+    The motor has **six terminals**: U1-U2, V1-V2, W1-W2 (three windings). It must be designed so that each winding withstands the **line voltage** (here 600 V in delta).
+
+    - **Star (Y)**: U2, V2, W2 are tied together. Each winding sees 600 / √3 ≈ **346 V**. Current and torque drop to about **one third**.
+    - **Delta (Δ)**: U1-W2, V1-U2, W1-V2. Each winding sees the full 600 V: full power.
+- caption: KM1 = line. KM3 = star (shorts U2-V2-W2). KM2 = delta. KT = timer relay.
+- title: Never star AND delta together
+  md: Closing KM2 and KM3 at the same time puts the three phases in a dead short circuit. The wiring uses **cross-wired NC 21-22 contacts** (like the reversing starter) and a **short pause** between the star opening and the delta closing, so that the arc on KM3 is extinguished before KM2 pulls in.
+- md: |
+    ## The sequence
+
+    1. **START**: KM1 (line) seals in. KM3 (star) and KT (timer) are fed through the NC contact of KM2.
+    2. The motor accelerates in star (≈ 80 % of speed, reduced torque).
+    3. After the delay (here **5 s**), KT opens its contact 15-16: **KM3 drops out**.
+    4. After the pause, KT closes its contact 17-18: **KM2 pulls in** (the NC of KM3 has reclosed by then). The motor goes to delta and reaches its rated speed.
+
+    > **At changeover**, the motor spins for a short moment without being powered: it keeps its speed. If the delay is too short, the motor is not fast enough and you get a **second current peak** when switching to delta.
+- title: '"It starts, then it slows down"'
+  md: 'Classic symptom: the second click happens (KM3 drops out) but KM2 does not pull in. The motor is then disconnected and slows down to a stop. In the DELTA rung, one element is open: KT contact 17-18, the NC of KM3, or the KM2 coil. Wait for the end of the delay and measure **across** each element.'
+- question: Why is the starting current about three times lower in star?
+  choices:
+  - Because the frequency is reduced
+  - Because each winding only sees 1/√3 of the voltage, so the line current is divided by 3
+  - Because the motor turns faster
+  - Because the overload relay limits the current
+  explain: In star, each winding sees 346 V instead of 600 V. The winding current is divided by √3, and since in delta the line current is √3 times the winding current, the resulting line current is divided by 3.
+- question: What is the role of the NC 21-22 contacts of KM2 and KM3?
+  choices:
+  - To signal the overload
+  - To forbid star and delta from closing at the same time
+  - To keep KM1 pulled in
+  - To reset the timer relay
+  explain: Each contactor blocks the other's coil. It is the same principle as the interlock of the reversing starter.
+- label: Troubleshoot the starter that loses speed
+references:
+- CSA C22.1 — Canadian Electrical Code (motors and controls), as needed.

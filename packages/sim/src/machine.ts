@@ -144,7 +144,7 @@ export class Machine {
     let s = '';
     for (const c of this.comps.values()) {
       for (const [k, v] of Object.entries(c.state)) {
-        if (k === 'heat' || k === 'lit' || k === 'state' || k === 'locks') continue;
+        if (k === 'heat' || k === 'lit' || k === 'state' || k === 'locks' || k === 'acc' || k === 'conn' || k === 'dir') continue;
         s += typeof v === 'number' ? `${k}${Math.round(v * 1000)}` : `${k}${String(v)}`;
       }
       if (c.faults.size) s += [...c.faults].join('+');
@@ -160,7 +160,7 @@ export class Machine {
     const before = this.events.length;
     this.settle(dtMs);
     // Time-based devices (overload trip, fuse blow) may have changed the network.
-    if (this.events.length !== before) this.settle(0);
+    if (this.events.length !== before || this.signature() !== this.lastSig) this.settle(0);
   }
 
   /** Run for a duration in fixed steps (tests / fast-forward). */
@@ -273,7 +273,7 @@ export class Machine {
 
   private isRunning(): boolean {
     for (const c of this.comps.values()) {
-      if (c.def.type === 'motor3' && (c.state.speed as number) > 0.02) return true;
+      if ((c.def.type === 'motor3' || c.def.type === 'motor6') && (c.state.speed as number) > 0.02) return true;
     }
     return false;
   }

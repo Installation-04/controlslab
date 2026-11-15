@@ -1,0 +1,58 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+summary: Choose the right function, measure a voltage, test continuity — and avoid the ohmmeter traps.
+objectives:
+- Choose the function and the category rating (CAT) suited to the circuit.
+- Measure an AC voltage across a component and interpret the value.
+- Measure resistance or continuity only when de-energized, recognizing sneak paths.
+blocks:
+- title: Before touching the multimeter
+  md: |
+    1. **CAT rating**: a 600 V panel or cell requires a **CAT III 600 V** (or higher) meter, with leads of the same rating.
+    2. **Inspect** the meter and leads (cracked insulation, bare probe tips): scrap them at the slightest doubt.
+    3. Wear the **PPE** required by the arc-flash risk assessment (face shield, insulating gloves, flame-resistant clothing) according to the label and the employer's procedure.
+    4. One hand behind your back when possible, never any metal jewelry.
+- md: |
+    ## The functions of the virtual multimeter
+
+    | Function | Use | Measured |
+    |---|---|---|
+    | **V~** | AC voltage | Live, in parallel |
+    | **V⎓** | DC voltage | Live, in parallel (here 0: the circuit is AC) |
+    | **Ω** | Resistance | **De-energized only** |
+    | **Continuity** | Beep below ~50 Ω | **De-energized only** |
+
+    The voltmeter has a **very high impedance**: it connects *in parallel* without disturbing the circuit. The ohmmeter, on the other hand, injects its own small current: any voltage present distorts the measurement — and can damage the meter.
+- caption: Click two terminals in the lab to place the probes.
+- title: The ohmmeter on a live circuit
+  md: In this simulator, measuring ohms on a live circuit shows "----" and is **logged as a safety violation** (and penalized at the checkpoint). In real life you can blow the meter's fuse or worse.
+- md: |
+    ## Sneak paths
+
+    Measure the resistance of coil M **without disconnecting it**: you will read about 75 Ω instead of 110 Ω. Why? Because the meter also "sees" the path through the control transformer secondary winding, the pilot light, and so on — everything wired in parallel.
+
+    **To measure a single component: disconnect one of its wires** (de-energized, locked out), then measure.
+
+    ## Reading a voltage: three habits
+
+    1. **Check the meter** on a known source ("live") before believing a "0 V".
+    2. **Measure across** the component, not only relative to ground.
+    3. **Anticipate** the value (lesson 1), then compare.
+- question: You read 0 V between wire 4 and X2 although the control circuit should be powered. What is the first thing to do?
+  choices:
+  - Conclude the circuit is de-energized and open the enclosure
+  - Replace the fuse
+  - Check the meter on a known source, then repeat the measurement
+  - Switch to ohms mode
+  explain: A "0 V" is only reliable if the instrument is reliable. Check it on a known source (live), measure, then check again (live-dead-live).
+- question: What reading do you expect across a healthy fuse in a live circuit?
+  choices:
+  - The source voltage
+  - About 0 V
+  - Half the source voltage
+  - An "OL" display
+  explain: 'A healthy fuse has a resistance of a few milliohms: almost no voltage drop. If you read the full voltage across it, it is open (blown).'
+- label: Take the basic measurements on the starter
+references:
+- Your multimeter's datasheet (overvoltage category, voltage rating).
+- CSA Z462 — Workplace electrical safety.

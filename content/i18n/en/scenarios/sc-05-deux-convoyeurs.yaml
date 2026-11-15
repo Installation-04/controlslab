@@ -1,0 +1,54 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+title: Two conveyors in sequence
+complaint: '"When both conveyors are started at the same time, the boxes fall onto a conveyor that is still stopped and pile up. On stop, the second one stops before it has cleared the boxes. I want a sequential start and stop."'
+context: 'Feed conveyor CV1 is driven by the panel motor (contactor M). Discharge conveyor CV2 is controlled directly by output %QX1.0 (field relay). On START: CV2 starts immediately, CV1 starts 3 seconds later. On STOP: CV1 stops immediately, CV2 keeps running for 8 seconds to clear the line and then stops. The emergency stop or an overload cuts everything immediately.'
+hints:
+- A run-request memory (seal-in) feeds two different timing functions.
+- 'Delayed start of CV1: a TON (3 s) fed by the request. Delayed stop of CV2: a TOF (8 s) fed by the request, whose Q output stays true for 8 s after the request drops.'
+- 'The emergency stop and the overload must NOT go through the timer: cut CV2 directly with those conditions.'
+entities:
+- name: Control panel
+- name: Feed conveyor
+- name: Discharge conveyor
+plc:
+  tests:
+  - title: CV2 starts first, CV1 three seconds later
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - msg: CV2 must start immediately
+    - msg: CV1 must wait 3 seconds before starting
+    - null
+    - msg: CV1 must run after 3 seconds
+    - null
+    - msg: The boxes must travel across both conveyors to the bin
+  - title: STOP cuts CV1 immediately, CV2 after 8 seconds
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - msg: CV1 must stop as soon as STOP is pressed
+    - msg: CV2 must keep running to clear the boxes
+    - null
+    - msg: CV2 must stop 8 seconds after STOP
+  - title: The emergency stop cuts everything immediately
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - msg: CV2 must not wait for its timer when the emergency stop is pressed
+objectives:
+- label: Sequential start (CV2 then CV1)
+- label: Sequential stop (CV1 then CV2 after 8 s)
+- label: Immediate emergency stop

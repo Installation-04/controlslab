@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+title: Checking the operation of the control circuit
+complaint: New installation. Check that the starter works according to the schematic and read the coil voltage.
+context: Start the motor with START, leave it running and read the voltage across the coil (A1–A2).
+hints:
+- Press START then release. Contact M 13-14 must hold the coil in.
+- Place the probes on A1 and A2 of contactor M, in V~.
+objectives:
+- label: Contactor M is pulled in and stays on after release
+- label: The RUN pilot light is on
+- label: Coil voltage ≈ 120 V

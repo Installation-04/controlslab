@@ -265,6 +265,113 @@ const motor3: ComponentType = {
   },
 };
 
+
+/**
+ * On-delay timer relay (Y-Δ changeover): coil A1-A2, timed NC 15-16 opens and timed NO 17-18 closes
+ * after `delayMs` of continuous coil voltage; both return instantly when the coil is released.
+ * `deadMs` separates the two so the star contactor drops before the delta contactor pulls in.
+ */
+const timer_relay: ComponentType = {
+  parts: {
+    coil: TWO('A1', 'A2', 'coil'),
+    nc: TWO('15', '16', 'timed_nc'),
+    no: TWO('17', '18', 'timed_no'),
+  },
+  faults: ['coil_open', 'no_open', 'nc_stuck'],
+  defaults: { coilV: 120, coilVA: 4, delayMs: 5000, deadMs: 100 },
+  init: () => ({ energized: false, acc: 0, ncClosed: true, noClosed: false }),
+  stamp(ctx) {
+    if (!ctx.faults.has('coil_open')) {
+      const v = num(ctx.params.coilV, 120);
+      const r = ctx.mode === 'ac' ? (v * v) / num(ctx.params.coilVA, 4) : 3000;
+      ctx.net.resistor(`${ctx.id}.coil`, ctx.node('A1'), ctx.node('A2'), r);
+    }
+    if (ctx.state.ncClosed || ctx.faults.has('nc_stuck')) ctx.net.resistor(`${ctx.id}.nc`, ctx.node('15'), ctx.node('16'), R_CLOSED);
+    if (ctx.state.noClosed && !ctx.faults.has('no_open')) ctx.net.resistor(`${ctx.id}.no`, ctx.node('17'), ctx.node('18'), R_CLOSED);
+  },
+  integrate(ctx) {
+    const vn = num(ctx.params.coilV, 120);
+    const v = ctx.faults.has('coil_open') ? 0 : abs(ctx.sol.vab(ctx.node('A1'), ctx.node('A2')));
+    const on = v >= 0.7 * vn;
+    ctx.state.energized = on;
+    ctx.state.acc = on ? (ctx.state.acc as number) + ctx.dt : 0;
+    const delay = num(ctx.params.delayMs, 5000);
+    ctx.state.ncClosed = (ctx.state.acc as number) < delay;
+    ctx.state.noClosed = (ctx.state.acc as number) >= delay + num(ctx.params.deadMs, 100);
+  },
+};
+
+/**
+ * Six-terminal squirrel-cage motor for star-delta starting. Windings U1-U2, V1-V2, W1-W2 are rated for the
+ * LINE voltage (delta at 600 V). Wired in star each winding sees 58 %, so starting torque and current are about 1/3.
+ */
+const motor6: ComponentType = {
+  parts: {
+    main: { symbol: 'motor6', terminals: { U1: [0, 0], V1: [50, 0], W1: [100, 0], U2: [0, 90], V2: [50, 90], W2: [100, 90] } },
+  },
+  faults: ['winding_open'],
+  defaults: { vLL: 600, fla: 5.2, rpm: 1750, rDC: 4.8, accelMs: 1500, coastMs: 4000 },
+  init: () => ({ speed: 0, state: 'stopped', rot: 0, dir: 'none', conn: 'none' }),
+  stamp(ctx) {
+    const vLL = num(ctx.params.vLL, 600);
+    // Winding impedance at rated (delta) voltage: phase current = FLA / √3.
+    const zRun = vLL / (num(ctx.params.fla, 5.2) / Math.sqrt(3));
+    for (const [k, a, b] of [[1, 'U1', 'U2'], [2, 'V1', 'V2'], [3, 'W1', 'W2']] as const) {
+      if (k === 2 && ctx.faults.has('winding_open')) continue;
+      const id = `${ctx.id}.w${k}`;
+      if (ctx.mode === 'ohm') {
+        ctx.net.resistor(id, ctx.node(a), ctx.node(b), num(ctx.params.rDC, 4.8));
+        continue;
+      }
+      const s = ctx.state.speed as number;
+      const run = polar(zRun, 31.8);
+      const lr = polar(zRun / 6, 72.5);
+      ctx.net.admittance(id, ctx.node(a), ctx.node(b), div(C(1), C(lr.re + (run.re - lr.re) * s, lr.im + (run.im - lr.im) * s)));
+    }
+  },
+  integrate(ctx) {
+    const vLL = num(ctx.params.vLL, 600);
+    const wv = [['U1', 'U2'], ['V1', 'V2'], ['W1', 'W2']].map(([a, b]) => abs(ctx.sol.vab(ctx.node(a!), ctx.node(b!))));
+    const hi = Math.max(...wv);
+    const lo = Math.min(...wv);
+    const winding = !ctx.faults.has('winding_open');
+    const phase = vLL / Math.sqrt(3);
+    const balanced = winding && lo > 0.5 * phase && lo > 0.7 * hi;
+    const any = hi > 0.3 * phase;
+    const delta = hi > 0.85 * vLL;
+    ctx.state.conn = !any ? 'none' : delta ? 'delta' : 'star';
+    let s = ctx.state.speed as number;
+    let rot = ctx.state.rot as number;
+    if (balanced) {
+      // Direction from the supply-side phase sequence (U1, V1).
+      const v1 = ctx.sol.v(ctx.node('U1'));
+      const v2 = ctx.sol.v(ctx.node('V1'));
+      const seq = v1.re * v2.im - v1.im * v2.re < 0 ? 1 : -1;
+      const ratio = hi / vLL; // winding voltage / rated: torque ∝ ratio²
+      const accel = (ctx.dt / num(ctx.params.accelMs, 1500)) * ratio * ratio;
+      const sMax = ratio > 0.85 ? 1 : 0.8; // reduced voltage: lower top speed under load
+      if (rot === 0 || s < 0.02) rot = seq;
+      if (rot === seq) {
+        s = s < sMax ? Math.min(sMax, s + accel) : Math.max(sMax, s - ctx.dt / 600);
+        ctx.state.state = s >= 0.995 ? 'running' : 'starting';
+      } else {
+        s = Math.max(0, s - ctx.dt / 600);
+        ctx.state.state = 'plugging';
+      }
+    } else if (any) {
+      s = Math.max(0, s - ctx.dt / 600);
+      ctx.state.state = 'single_phasing';
+    } else {
+      s = Math.max(0, s - ctx.dt / num(ctx.params.coastMs, 4000));
+      ctx.state.state = s > 0 ? 'coasting' : 'stopped';
+    }
+    ctx.state.speed = s;
+    if (s <= 0 && !balanced) rot = 0;
+    ctx.state.rot = rot;
+    ctx.state.dir = s > 0.02 ? (rot > 0 ? 'fwd' : 'rev') : 'none';
+  },
+};
+
 /** Control power transformer (CPT). */
 const transformer: ComponentType = {
   parts: {
@@ -376,6 +483,6 @@ const terminal: ComponentType = {
 };
 
 export const LIBRARY: Record<string, ComponentType> = {
-  source3, disconnect3, fuse, contactor, overload, motor3, transformer, pushbutton, lamp, plc_input, plc_output,
+  source3, disconnect3, fuse, contactor, overload, motor3, motor6, timer_relay, transformer, pushbutton, lamp, plc_input, plc_output,
   ground, terminal,
 };

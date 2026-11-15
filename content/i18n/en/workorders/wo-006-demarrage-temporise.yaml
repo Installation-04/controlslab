@@ -1,0 +1,47 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+title: Timed start with warning
+complaint: '"For the operators'' safety, I want the light to come on 3 seconds BEFORE the motor starts. If someone presses STOP during that delay, nothing must start."'
+context: Same panel as work order BT-0005. When START is pressed, the RUN pilot light (%QX0.1) comes on immediately, then the contactor (%QX0.0) pulls in 3 seconds later. Use an internal memory for the start request and a TON timer. This work order can be done in Ladder as well as in ST.
+hints:
+- The start request is a seal-in on an internal variable (for example "Demande"), not on the coil.
+- A TON timer fed by the request gives T1.Q after 3 seconds; coil M follows T1.Q.
+- The light is on during the delay (request present, T1.Q not yet) and then as long as the contactor is pulled in.
+plc:
+  tests:
+  - title: Light immediately, motor after 3 seconds
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - msg: The light must come on as soon as START is pressed (warning)
+    - msg: The motor must not start before the 3 seconds are over
+    - null
+    - msg: The contactor must pull in after 3 seconds and stay pulled in
+  - title: STOP during the delay cancels the start
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - msg: 'STOP during the delay must cancel the request: the motor must never start'
+  - title: STOP stops the running motor
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - msg: STOP must cut the coil
+objectives:
+- label: Warning then start after 3 seconds
+- label: STOP during the delay cancels the start
+- label: STOP while running
