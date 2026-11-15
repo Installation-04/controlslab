@@ -2,7 +2,7 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · Versions: [SemVer](https://semver.org/lang/fr/).
 
-## [Non publié / Unreleased]
+## [0.3.0] — Phase 3 (machines, leçons, anglais)
 
 ### Ajouté / Added
 - **Anglais complet** : traductions des 9 leçons, 12 bons de travail, 2 points de contrôle et 6 scénarios dans `content/i18n/en/` (fichiers de superposition fusionnés au chargement, test de couverture), messages de test et noms d'entités localisés.
