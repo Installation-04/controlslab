@@ -52,6 +52,8 @@ export class CellCore {
     for (const e of this.factory.entities) {
       if (e.type === 'conveyor' && resolveParams(e).drive === 'panel') {
         this.factory.setExternalDrive(e.id, this.motorSpeed > 0.05 ? this.motorSpeed * this.motorDir : 0);
+      } else if (e.type === 'tank' && resolveParams(e).drive === 'panel') {
+        this.factory.setExternalDrive(e.id, this.motorSpeed > 0.05 ? this.motorSpeed : 0);
       }
     }
     this.factory.step(dtMs, plcOutputs);
@@ -71,7 +73,9 @@ export type CellStep =
   | { expectInput: { address: string; equals: boolean }; msg?: string }
   | { expectOutput: { address: string; equals: boolean }; msg?: string }
   | { expectBelt: { id: string; running: boolean }; msg?: string }
-  | { expectLost: { max: number }; msg?: string };
+  | { expectLost: { max: number }; msg?: string }
+  | { expectLevel: { id: string; min?: number; max?: number }; msg?: string }
+  | { expectTank: { id: string; maxOverflowMs?: number; maxEmptyMs?: number }; msg?: string };
 
 export interface CellRunResult {
   pass: boolean;
@@ -130,6 +134,16 @@ export class CellRunner {
       } else if ('expectBelt' in step) {
         const running = Math.abs(this.core.factory.belt[step.expectBelt.id] ?? 0) > 0.05;
         if (running !== step.expectBelt.running) fail(step.msg, `${n} : convoyeur ${step.expectBelt.id} ${running ? 'en marche' : 'arrêté'}`);
+      } else if ('expectLevel' in step) {
+        const { id, min, max } = step.expectLevel;
+        const v = this.core.factory.level[id] ?? 0;
+        if ((min !== undefined && v < min) || (max !== undefined && v > max)) fail(step.msg, `${n} : niveau ${id} = ${v.toFixed(2)} (attendu ${min ?? 0}…${max ?? 1})`);
+      } else if ('expectTank' in step) {
+        const { id, maxOverflowMs, maxEmptyMs } = step.expectTank;
+        const o = this.core.factory.overflowMs[id] ?? 0;
+        const z = this.core.factory.emptyMs[id] ?? 0;
+        if (maxOverflowMs !== undefined && o > maxOverflowMs) fail(step.msg, `${n} : ${id} a débordé ${(o / 1000).toFixed(1)} s`);
+        if (maxEmptyMs !== undefined && z > maxEmptyMs) fail(step.msg, `${n} : ${id} est resté à sec ${(z / 1000).toFixed(1)} s`);
       } else if ('expectLost' in step) {
         if (this.core.factory.lost > step.expectLost.max) fail(step.msg, `${n} : ${this.core.factory.lost} boîte(s) tombée(s) au sol`);
       }

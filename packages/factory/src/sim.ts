@@ -78,6 +78,12 @@ export class FactorySim {
   readonly stroke: Record<string, number> = {};
   /** Belt speed factor 0..1 (and sign) as currently applied, for the renderer. */
   readonly belt: Record<string, number> = {};
+  /** Tank level 0..1, time spent overflowing / dry (ms). */
+  readonly level: Record<string, number> = {};
+  readonly overflowMs: Record<string, number> = {};
+  readonly emptyMs: Record<string, number> = {};
+  /** Pump flow factor 0..1 as applied (for the renderer). */
+  readonly pump: Record<string, number> = {};
   private pressed: Record<string, boolean> = {};
   private external: Record<string, number> = {};
   readonly entities: EntityDef[];
@@ -88,6 +94,12 @@ export class FactorySim {
       if (e.type === 'bin') this.bins[e.id] = { count: 0, byKind: { plastic: 0, metal: 0, cardboard: 0 } };
       if (e.type === 'pusher') this.stroke[e.id] = 0;
       if (e.type === 'conveyor') this.belt[e.id] = 0;
+      if (e.type === 'tank') {
+        this.level[e.id] = Number(resolveParams(e).startLevel);
+        this.overflowMs[e.id] = 0;
+        this.emptyMs[e.id] = 0;
+        this.pump[e.id] = 0;
+      }
       if (e.type === 'spawner') {
         this.spawnAt[e.id] = 0;
         this.spawnCount[e.id] = 0;
@@ -138,6 +150,24 @@ export class FactorySim {
       const speed = dt / Number(p.strokeMs);
       const s = this.stroke[e.id]! + (this.out(e, 'extend', outputs) ? speed : -speed);
       this.stroke[e.id] = Math.max(0, Math.min(1, s));
+    }
+
+    // Tanks: pump in, constant demand out
+    for (const e of this.entities) {
+      if (e.type !== 'tank') continue;
+      const p = resolveParams(e);
+      const flow = p.drive === 'panel' ? Math.max(0, this.external[e.id] ?? 0) : this.out(e, 'pump', outputs) ? 1 : 0;
+      this.pump[e.id] = flow;
+      let l = this.level[e.id]! + (flow * dt) / (Number(p.fillSec) * 1000) - dt / (Number(p.drainSec) * 1000);
+      if (l >= 1) {
+        l = 1;
+        if (flow > 0.05) this.overflowMs[e.id]! += dt;
+      }
+      if (l <= 0) {
+        l = 0;
+        this.emptyMs[e.id]! += dt;
+      }
+      this.level[e.id] = l;
     }
 
     // Belts
@@ -255,6 +285,10 @@ export class FactorySim {
         case 'pusher':
           set('retracted', this.stroke[e.id]! <= 0.001);
           set('extended', this.stroke[e.id]! >= 0.999);
+          break;
+        case 'tank':
+          set('low', this.level[e.id]! >= Number(p.lowAt));
+          set('high', this.level[e.id]! >= Number(p.highAt));
           break;
         case 'button':
           set('state', p.contact === 'NC' ? !this.pressed[e.id] : !!this.pressed[e.id]);

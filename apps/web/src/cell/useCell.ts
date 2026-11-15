@@ -141,6 +141,8 @@ export function useCellRuntime(entities: EntityDef[], machines: Record<string, M
       items: c.factory.items,
       belt: c.factory.belt,
       stroke: c.factory.stroke,
+      level: c.factory.level,
+      pump: c.factory.pump,
       pressed: (id) => c.factory.isPressed(id),
       inputs: inputs.current,
       outputs: outputs.current,

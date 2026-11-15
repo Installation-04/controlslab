@@ -96,3 +96,9 @@ docker-compose.yml  .env.example  install.sh
 - Scenarios are YAML (`content/scenarios`) with scripted tests run headless by `CellRunner` (same engine as the browser).
 - `apps/web/src/cell`: three.js renderer (pure view, pulls a frame each animation frame), drag-and-drop palette, inspector with I/O mapping, panel drawer reusing `PanelWorkbench`. Loaded lazily.
 - **Not in this slice**: a free-form *panel wiring* editor (assembling components/wires by drag-and-drop). Panels are YAML machine definitions chosen from a library.
+
+## Phase 3 (planned; one PR per slice)
+1. **More machines and lessons** — star-delta starter (timer relay, 6-terminal motor), two conveyors in sequence (PLC), pump + tank with level sensors; matching lessons, work orders, checkpoints.
+2. **Full English** — lessons, work orders, machines, scenarios (UI strings are already bilingual).
+3. **Panel wiring editor** — assemble a panel by drag-and-drop (components + wires) and simulate it, instead of choosing a pre-built machine.
+4. **Accounts and instructor view** — optional accounts + instructor dashboard. Needs a server: design decisions (auth method, storage, self-hosting story) are discussed with the maintainer before any code, since it ends the "static site, no secrets" property.

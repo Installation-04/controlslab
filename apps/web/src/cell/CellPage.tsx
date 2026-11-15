@@ -20,7 +20,7 @@ import { CellView3D, snap, type ViewCallbacks } from './scene3d';
 import { mergeDeclarations, mergeLdVars } from './st';
 import { useCellRuntime } from './useCell';
 
-const PALETTE: EntityType[] = ['conveyor', 'spawner', 'photo', 'prox', 'pusher', 'button', 'light', 'stacklight', 'bin'];
+const PALETTE: EntityType[] = ['conveyor', 'spawner', 'photo', 'prox', 'pusher', 'button', 'light', 'stacklight', 'bin', 'tank'];
 const DND_MIME = 'text/plain';
 const DND_PREFIX = 'controlslab-entity:';
 

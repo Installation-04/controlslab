@@ -2,6 +2,13 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · Versions: [SemVer](https://semver.org/lang/fr/).
 
+## [Non publié / Unreleased]
+
+### Ajouté / Added
+- **Démarreur étoile-triangle** (`star-delta-3w`) : relais temporisé à l'excitation (`timer_relay`) et moteur à six bornes (`motor6`) dans le simulateur; courant de démarrage ≈ 1/3 en étoile, verrouillage NF croisé, changement après 5 s; leçon 9 et bon de travail BT-0012; symboles de schéma correspondants.
+- **Scénario 3D SC-0005** : deux convoyeurs en séquence (démarrage retardé de CV1 par TON, arrêt retardé de CV2 par TOF, arrêt d'urgence immédiat), avec solution modèle et tests négatifs.
+- **Réservoir avec pompe** (entité 3D `tank`, pompe directe ou entraînée par le moteur du panneau, capteurs de niveau bas/haut, débordement et mise à sec comptabilisés) et **scénario SC-0006** (régulation de niveau par hystérésis); nouvelles étapes de test `expectLevel` et `expectTank`.
+
 ## [0.2.0] — Phase 2
 
 ### Ajouté / Added
