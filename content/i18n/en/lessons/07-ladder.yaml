@@ -1,0 +1,47 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+summary: 'Read and write rungs: contacts, parallel branches, coils, timers — and watch the current flow live.'
+objectives:
+- Read a rung and say under which conditions the coil is energized.
+- Translate a hardwired control circuit into rungs (seal-in, interlock).
+- Use a TON timer in a rung.
+blocks:
+- md: |
+    **Ladder** (LD, "contact diagram") looks like the relay schematics you already read: two vertical **rails**, horizontal **rungs**. "Virtual" current flows left to right through **contacts** and energizes a **coil** on the right.
+
+    | Element | Behaves like | Structured Text |
+    |---|---|---|
+    | **NO** contact `┤ ├` | conducts if the variable is true | `X` |
+    | **NC** contact `┤/├` | conducts if the variable is false | `NOT X` |
+    | Contacts in **series** | AND | `A AND B` |
+    | Branches in **parallel** | OR | `A OR B` |
+    | Coil `( )` | writes the rung result | `Y := ...;` |
+    | **S** / **R** coil | sets to 1 / resets to 0 and latches | `IF ... THEN Y := TRUE; END_IF` |
+
+    In ControlsLab, a Ladder program is **transcribed to Structured Text** (visible under "View generated Structured Text") and executed by the same engine. Rungs run **top to bottom** on every scan cycle.
+- title: The same seal-in, three ways to read it
+  md: 'Hardwired circuit: `(START ∥ M 13-14) → STOP(NC) → OL 95-96 → coil M`. Ladder: one rung with START in parallel with BobineM, then STOP and Overload (NC) in series, and the BobineM coil. Structured Text: `BobineM := (Marche OR BobineM) AND Arret AND NOT Surcharge;`'
+- md: |
+    ## While the PLC runs
+
+    Load the program into the virtual PLC: links and contacts that **conduct** light up in **green**. If a rung does not do what you expect, look at where the current stops: that is often where the error hides (a reversed NO/NC polarity, for example).
+
+    ## A timer in a rung
+
+    A **TON** is a rung output: its IN input is the rung result, and its `T1.Q` output becomes true after the programmed duration `PT`. You then use it like a contact: `T1.Q`. Example from the "timed start" work order: the motor only starts 3 seconds after START.
+- question: A rung has two NO contacts in parallel (A and B) followed by an NC contact C, then coil Y. When is Y energized?
+  choices:
+  - When A and B and C are true
+  - When (A or B) is true and C is false
+  - When A is true or C is true
+  - Always
+  explain: Parallel = OR, series = AND, and an NC contact conducts when its variable is false. So Y := (A OR B) AND NOT C.
+- question: Why does the seal-in put the coil in parallel with the START button?
+  choices:
+  - To save a contact
+  - So that the coil, once energized, holds itself in when START is released
+  - So that STOP no longer has any effect
+  - It is a common mistake
+- label: Write a timed start in Ladder
+references:
+- IEC 61131-3 — Programming languages for programmable controllers (LD, ST).

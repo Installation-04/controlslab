@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+title: Voltage readings on the starter
+complaint: The foreman wants a confirmation of the voltages before a new machine is started up.
+context: The starter is energized, the motor is stopped. Read the supply voltage and the control voltage.
+hints:
+- Place the probes on two terminals in the lab, choose V~, then read the display.
+- The supply is on the line side of the disconnect (L1 to L2). The control is between wire 1 (TB1) and X2 (TB0).
+objectives:
+- label: Voltage between L1 and L2 (600 V nominal)
+- label: Voltage between a phase and ground (≈ 347 V)
+- label: Control voltage between wire 1 and X2 (≈ 120 V)
+- label: No ohm measurement on a live circuit

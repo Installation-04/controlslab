@@ -126,7 +126,7 @@ function CellEditor({ id, scenario }: { id: string; scenario?: Scenario }) {
   const progress = useProgress();
   const machines = useMemo(() => Object.fromEntries(reg.machines.map((m) => [m.id, m])), [reg.machines]);
   const panelMachines = useMemo(() => reg.machines.filter((m) => m.mode === 'plc'), [reg.machines]);
-  const defaults = scenario ? (scenario.entities as EntityDef[]) : FREE_ENTITIES;
+  const defaults = scenario ? (scenario.entities.map((e) => ({ ...e, name: e.name === undefined ? undefined : loc(e.name) })) as EntityDef[]) : FREE_ENTITIES;
   const [entities, setEntities] = useState<EntityDef[]>(() => loadLayout(id, defaults));
   const [selected, setSelected] = useState<string | null>(null);
   const [drawer, setDrawer] = useState(false);
@@ -279,7 +279,7 @@ function CellEditor({ id, scenario }: { id: string; scenario?: Scenario }) {
     if (!scenario) return;
     setBusy(true);
     setTimeout(() => {
-      const r = checkScenario(scenario, entities, machines, source);
+      const r = checkScenario(scenario, entities, machines, source, lang);
       setResult(r);
       actions.recordOrder(scenario.id, r.passed);
       setBusy(false);

@@ -71,7 +71,7 @@ export function OrderPage() {
 }
 
 function OrderHeader({ order, getMachine, refresh }: { order: WorkOrder; getMachine(): import('@controlslab/sim').Machine; refresh(): void }) {
-  const { t, loc } = useT();
+  const { t, loc, lang } = useT();
   const progress = useProgress();
   const [result, setResult] = useState<CheckResult | null>(null);
   const [hints, setHints] = useState(0);
@@ -84,7 +84,7 @@ function OrderHeader({ order, getMachine, refresh }: { order: WorkOrder; getMach
     setTimeout(() => {
       const machine = getMachine();
       const def = machineById(order.machine)!;
-      const r = checkWorkOrder({ order, machine, def, plcSource: order.plc ? getPlcSource(order.id, startersOf(order)) : undefined });
+      const r = checkWorkOrder({ order, machine, def, lang, plcSource: order.plc ? getPlcSource(order.id, startersOf(order)) : undefined });
       setResult(r);
       actions.recordOrder(order.id, r.passed);
       setBusy(false);

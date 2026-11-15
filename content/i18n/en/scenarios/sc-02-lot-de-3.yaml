@@ -1,0 +1,56 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+title: Count a batch of 3 boxes
+complaint: '"I want the conveyor to stop when 3 boxes have passed the sensor, the stack light to turn amber, and to restart with the reset button."'
+context: 'A photoelectric sensor is placed at the end of the conveyor (%IX1.0). The reset button is on %IX1.1. The stack light: green %QX1.0, amber %QX1.1, red %QX1.2. Use a CTU counter.'
+hints:
+- A CTU counter counts the rising edges of CU and resets with R. Its Q output becomes TRUE when CV ≥ PV.
+- Add "NOT LotPlein" to the seal-in equation to cut the motor at the end of the batch.
+- Green = conveyor running (RetourM), amber = batch full, red = overload.
+entities:
+- name: Control panel
+- null
+- null
+- null
+- name: Reset
+plc:
+  tests:
+  - title: Stops after 3 boxes, amber light
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - msg: The stack light must be green while running
+    - null
+    - null
+    - msg: After 3 boxes, the stack light must turn amber
+    - msg: Green must go out when the conveyor stops
+    - msg: The conveyor must be stopped once the batch is complete
+  - title: Does not stop before 3 boxes
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - msg: The conveyor must not stop before the 3rd box
+    - msg: Amber must not light before the 3rd box
+  - title: The reset allows a restart
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - msg: The reset must turn the amber light off
+    - null
+    - null
+    - null
+    - null
+    - msg: After the reset and START, the conveyor must run again
+objectives:
+- label: Stop at 3 boxes and amber light
+- label: No premature stop
+- label: Batch reset

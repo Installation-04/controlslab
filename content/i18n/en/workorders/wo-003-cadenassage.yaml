@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+title: Starter lockout — preventive maintenance
+complaint: Annual preventive maintenance of the starter (re-tightening terminals). The motor is currently running.
+context: The motor is running. Apply the complete lockout procedure, up to the verification of absence of voltage, then finish and return to service.
+hints:
+- In the lockout panel, follow the steps in order. The next action to take is indicated.
+- The line side of the disconnect is always live — it is your "live" to check the meter.
+- Then measure the 7 "dead" points, then check the live source again.
+objectives:
+- label: People notified
+- label: Normal stop before isolating (no opening of the disconnect under load)
+- label: Disconnect open, locked and tagged
+- label: Residual energy released (motor stopped)
+- label: Try-start attempted
+- label: Complete live – dead – live verification
+- label: Return to service in the right order
+- label: No safety violation

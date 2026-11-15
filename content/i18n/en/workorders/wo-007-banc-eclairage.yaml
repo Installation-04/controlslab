@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+title: Currents and voltages on the lighting bench
+complaint: '"Before connecting a new load, I want to know how much current the circuit already draws, branch by branch, and check that the 15 A fuse is sufficient."'
+context: 'The bench has three parallel branches behind fuse F1: two 60 W lamps and a 1,500 W heater (120 V). Turn on the three switches, then use the clamp meter (A~ mode, click a wire) and the voltmeter.'
+hints:
+- 'Predict the values before measuring: I = P ÷ V. A 60 W lamp draws 0.5 A; the heater 1,500 ÷ 120 = 12.5 A.'
+- 'The branches are in parallel: the fuse current is the sum of the branch currents.'
+- The clamp goes around a single wire at a time. On the schematic, choose the wire between the switch and the load.
+objectives:
+- label: Switch 1 on
+- label: Switch 2 on
+- label: Switch 3 (heater) on
+- label: Lamp 1 current (≈ 0.5 A)
+- label: Heater current (≈ 12.5 A)
+- label: Total current in fuse F1 (≈ 13.5 A)
+- label: Voltage across the heater (≈ 120 V)

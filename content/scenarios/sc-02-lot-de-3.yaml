@@ -68,7 +68,7 @@ plc:
         - { expectOutput: { address: '%QX1.0', equals: true }, msg: La colonne doit être verte pendant la marche }
         - { expectOutput: { address: '%QX1.1', equals: false } }
         - { run: 30000 }
-        - { expectOutput: { address: '%QX1.1', equals: true }, msg: Après 3 boîtes, la colonne doit passer à l'ambre }
+        - { expectOutput: { address: '%QX1.1', equals: true }, msg: "Après 3 boîtes, la colonne doit passer à l'ambre" }
         - { expectOutput: { address: '%QX1.0', equals: false }, msg: Le vert doit s'éteindre quand le convoyeur s'arrête }
         - { expectBelt: { id: CV1, running: false }, msg: Le convoyeur doit être arrêté une fois le lot complet }
     - id: t-pas-avant
@@ -95,7 +95,7 @@ plc:
         - { run: 300 }
         - { panelRelease: PB_START }
         - { run: 4000 }
-        - { expectBelt: { id: CV1, running: true }, msg: Après la réinitialisation et MARCHE, le convoyeur doit repartir }
+        - { expectBelt: { id: CV1, running: true }, msg: "Après la réinitialisation et MARCHE, le convoyeur doit repartir" }
 objectives:
   - { type: plc_test, test: t-lot, label: Arrêt à 3 boîtes et colonne ambre }
   - { type: plc_test, test: t-pas-avant, label: Pas d'arrêt prématuré }

@@ -5,6 +5,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · Versions: [S
 ## [Non publié / Unreleased]
 
 ### Ajouté / Added
+- **Anglais complet** : traductions des 9 leçons, 12 bons de travail, 2 points de contrôle et 6 scénarios dans `content/i18n/en/` (fichiers de superposition fusionnés au chargement, test de couverture), messages de test et noms d'entités localisés.
 - **Démarreur étoile-triangle** (`star-delta-3w`) : relais temporisé à l'excitation (`timer_relay`) et moteur à six bornes (`motor6`) dans le simulateur; courant de démarrage ≈ 1/3 en étoile, verrouillage NF croisé, changement après 5 s; leçon 9 et bon de travail BT-0012; symboles de schéma correspondants.
 - **Scénario 3D SC-0005** : deux convoyeurs en séquence (démarrage retardé de CV1 par TON, arrêt retardé de CV2 par TOF, arrêt d'urgence immédiat), avec solution modèle et tests négatifs.
 - **Réservoir avec pompe** (entité 3D `tank`, pompe directe ou entraînée par le moteur du panneau, capteurs de niveau bas/haut, débordement et mise à sec comptabilisés) et **scénario SC-0006** (régulation de niveau par hystérésis); nouvelles étapes de test `expectLevel` et `expectTank`.

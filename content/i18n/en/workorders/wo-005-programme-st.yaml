@@ -1,0 +1,52 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+title: Program the starter seal-in
+complaint: The PLC-controlled starter is wired but the PLC has no program. Write the START/STOP logic.
+context: The starter program contains the declarations. Write the seal-in equation, load it into the virtual PLC and test it on the machine.
+hints:
+- The coil is energized if (START or already energized) and STOP (NC) is TRUE, the overload is FALSE and the emergency stop is released.
+- Write BobineM := (Marche OR BobineM) AND ...;
+plc:
+  tests:
+  - title: START starts and the coil stays pulled in after release
+    steps:
+    - msg: The coil must not be energized without a command
+    - null
+    - null
+    - null
+    - null
+    - msg: The contactor must stay pulled in after START is released (seal-in)
+  - title: STOP cuts the output and the motor does not restart by itself
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - msg: STOP must cut the coil
+    - null
+    - null
+    - msg: The motor must not restart when STOP is released
+  - title: The emergency stop cuts the control
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - msg: The program must also drop BobineM when the emergency stop is pressed
+  - title: The RUN pilot light follows the contactor
+    steps:
+    - null
+    - null
+    - null
+    - null
+    - msg: The RUN pilot light must light when the motor runs (VoyantMarche := RetourM)
+objectives:
+- label: Start and seal-in
+- label: Stop without unwanted restart
+- label: Emergency stop respected by the program
+- label: RUN pilot light

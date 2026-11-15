@@ -1,0 +1,43 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# English translation overlay (merged onto the French source file of the same name).
+summary: Write the START/STOP logic of a motor starter in Structured Text (IEC 61131-3) and test it on the virtual machine.
+objectives:
+- Declare variables bound to inputs/outputs (AT %IX / %QX).
+- Translate the 3-wire circuit into a Boolean seal-in equation.
+- Understand the scan cycle and why the output "sees" itself.
+blocks:
+- md: |
+    In the **"PLC-controlled starter"** machine, the buttons are wired to PLC **inputs** and coil M to a **relay output**. The emergency stop and overload contact 95-96 remain **wired in series with the coil**: safety never depends on a program alone.
+
+    ## The scan cycle
+
+    On every cycle (10 ms here): **1.** read the inputs → **2.** run the program, top to bottom → **3.** write the outputs. An output read inside the program keeps the value from the previous cycle: that is what makes the seal-in possible.
+- title: Declarations
+- title: Watch the polarities
+  md: A STOP button wired NC gives **TRUE at rest**. In the program you therefore write `Arret` (not `NOT Arret`) as a run condition. Many automation "bugs" are really polarity errors between the wiring and the program.
+- md: |
+    ## The seal-in equation
+
+    The 3-wire circuit says: "the coil is energized if (START **or** already energized) **and** no stop is active". In Structured Text:
+- title: Logic
+- md: |
+    ## Version with a timer
+
+    Automation technicians often add a restart delay or a start-failure fault. Example: if auxiliary M 13-14 does not close 1 s after the command, we cut the output.
+- title: Supervision with TON
+- question: A colleague wires the STOP button as NO. What must change in the equation for it to work?
+  choices:
+  - Nothing
+  - Replace Arret with NOT Arret
+  - Replace AND with OR
+  - Remove BobineM from the equation
+  explain: 'With NO, the input is TRUE when pressed: the run condition becomes NOT Arret. But careful — this NO wiring is not fail-safe and should not be used as a stop.'
+- question: Why does BobineM appear on both sides of the equation?
+  choices:
+  - It is a mistake
+  - 'To achieve the seal-in: the value from the previous scan holds the output'
+  - To double the speed
+  - To protect it from overloads
+- label: Write and test the seal-in program
+references:
+- IEC 61131-3 — Programming languages for programmable controllers.
