@@ -2,7 +2,7 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · Versions: [SemVer](https://semver.org/lang/fr/).
 
-## [Non publié / Unreleased]
+## [0.4.0] — Éditeur de câblage
 
 ### Ajouté / Added
 - **Éditeur de câblage de panneau** (route `#/builder`) : placer des composants de la bibliothèque, déplacer, pivoter, tracer des fils en cliquant les bornes, éditer désignation et paramètres, essayer le panneau en mode Marche avec le vrai simulateur (mesures, défauts, cadenassage), exporter/importer en YAML et l'ajouter au laboratoire libre; défi « démarreur à 3 fils » vérifié par simulation (démarrage, auto-maintien, moteur, arrêt, pas de redémarrage). Modèle pur dans `@controlslab/sim` (`builder.ts`).
