@@ -29,7 +29,7 @@ export function wireColor(v: number): { stroke: string; width: number; cls: stri
   return { stroke: 'var(--wire-off)', width: 1.6, cls: 'w0' };
 }
 
-function route(a: Point, b: Point, via?: Point[]): Point[] {
+export function route(a: Point, b: Point, via?: Point[]): Point[] {
   if (via?.length) return [a, ...via, b];
   if (Math.abs(a[0] - b[0]) < 0.5 || Math.abs(a[1] - b[1]) < 0.5) return [a, b];
   if (Math.abs(b[1] - a[1]) >= Math.abs(b[0] - a[0])) {
