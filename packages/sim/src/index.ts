@@ -5,4 +5,5 @@ export { LIBRARY, type ComponentType, type PartGeom } from './library';
 export { computeLoto, LOTO_STEPS, type LotoStatus, type LotoStepId, type StepStatus } from './loto';
 export { Network, GND, gaussSolve } from './mna';
 export { rotate, addPt } from './geometry';
+export * from './builder';
 export * as complex from './complex';
