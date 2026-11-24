@@ -427,3 +427,17 @@ select, input[type='text'], input:not([type]), input[inputmode] {
 .builder .issues .error { color: var(--bad); }
 .builder .issues .warning { color: var(--muted); }
 @media (max-width: 800px) { .builder-layout { grid-template-columns: 1fr; } }
+
+/* ---------- Classroom ---------- */
+.tag.assigned { background: var(--accent, #1c7ed6); color: #fff; border-radius: 999px; padding: 0 .5rem; font-style: normal; font-size: .75rem; margin-left: .4rem; }
+.class-section { margin: 1.5rem 0; }
+.instructor .assign-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin: .5rem 0 1rem; }
+.instructor fieldset { border: 1px solid var(--border); border-radius: var(--radius); padding: .5rem .75rem; max-height: 240px; overflow: auto; }
+.instructor .table-wrap { overflow-x: auto; }
+.instructor .class-table td, .instructor .class-table th { text-align: center; padding: .3rem .5rem; }
+.instructor .class-table td:first-child, .instructor .class-table th:first-child { text-align: left; }
+.instructor .st-passed { color: var(--ok); font-weight: 700; }
+.instructor .st-attempted { color: var(--amber, #f59f00); }
+.instructor .st-none { color: var(--muted); }
+.instructor .program-card { border-top: 1px solid var(--border); padding-top: .5rem; margin-top: .5rem; }
+.instructor .code-view { background: var(--surface); border: 1px solid var(--border); padding: .6rem; overflow: auto; max-height: 320px; font-size: .8rem; }
