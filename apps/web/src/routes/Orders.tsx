@@ -6,6 +6,7 @@ import { machineById, useRegistry } from '../content';
 import { useT } from '../i18n';
 import { Lab } from '../lab/Lab';
 import { getPlcSource, type Starters } from '../store/plc';
+import { AssignedBadge } from './ClassSection';
 import { actions, useProgress } from '../store/progress';
 
 /** Program starters (ST and optional Ladder) declared by a work order. */
@@ -29,7 +30,7 @@ export function OrdersList() {
               <Link to={`/orders/${w.id}`}>
                 <span className="num small">{w.number}</span>
                 <span className="body">
-                  <strong>{loc(w.title)}</strong>
+                  <strong>{loc(w.title)}<AssignedBadge kind="workorders" id={w.id} /></strong>
                   <span className="muted">{loc(w.complaint)}</span>
                   <span className="meta">
                     <b className={`prio ${w.priority}`}>{w.priority}</b> · {st?.passed ? <b className="ok">✓ {t('wo.status.passed')}</b> : t('wo.status.todo')}
@@ -86,7 +87,9 @@ function OrderHeader({ order, getMachine, refresh }: { order: WorkOrder; getMach
       const def = machineById(order.machine)!;
       const r = checkWorkOrder({ order, machine, def, lang, plcSource: order.plc ? getPlcSource(order.id, startersOf(order)) : undefined });
       setResult(r);
-      actions.recordOrder(order.id, r.passed);
+      const violations: Record<string, number> = {};
+      for (const e of machine.events) if (e.type === 'violation') violations[e.code] = (violations[e.code] ?? 0) + 1;
+      actions.recordOrder(order.id, r.passed, { violations, measures: machine.events.filter((e) => e.type === 'measure').length });
       setBusy(false);
       refresh();
     }, 30);

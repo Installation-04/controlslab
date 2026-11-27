@@ -39,12 +39,23 @@ describe('progress store', () => {
     expect(getProgress()).toBe(before);
   });
 
+  it('records safety violations and measurements per work order, keeping the worst case', () => {
+    actions.recordOrder('w', false, { violations: { ohms_on_live: 1 }, measures: 3 });
+    actions.recordOrder('w', true, { violations: { ohms_on_live: 1, work_without_loto: 2 }, measures: 2 });
+    expect(getProgress().orders.w).toMatchObject({ passed: true, attempts: 2, violations: { ohms_on_live: 1, work_without_loto: 2 }, measures: 3 });
+    actions.recordOrder('w', true);
+    expect(getProgress().orders.w!.measures).toBe(3);
+  });
+
   it('merge keeps the best of both; replace overwrites', () => {
     actions.setLessonDone('a', true);
     actions.recordOrder('x', true);
     const other = emptyProgress();
     other.lessons = { b: { done: true, quiz: {} }, a: { done: false, quiz: { q: true } } };
-    other.orders = { x: { passed: false, attempts: 5, lastAt: 9 }, y: { passed: true, attempts: 1, lastAt: 1 } };
+    other.orders = {
+      x: { passed: false, attempts: 5, lastAt: 9, violations: { ohms_on_live: 3 }, measures: 4 },
+      y: { passed: true, attempts: 1, lastAt: 1, violations: {}, measures: 0 },
+    };
     other.checkpoints = { c: [{ at: 1, fault: 'f', total: 80, max: 100, percent: 80, passed: true, lines: [] }] };
     other.programs = { p: 'S' };
     other.profile.name = 'Imported';
@@ -52,7 +63,7 @@ describe('progress store', () => {
     const p = getProgress();
     expect(p.lessons.a).toEqual({ done: true, quiz: { q: true } });
     expect(p.lessons.b!.done).toBe(true);
-    expect(p.orders.x).toMatchObject({ passed: true, attempts: 5 });
+    expect(p.orders.x).toMatchObject({ passed: true, attempts: 5, violations: { ohms_on_live: 3 }, measures: 4 });
     expect(p.orders.y!.passed).toBe(true);
     expect(p.checkpoints.c).toHaveLength(1);
     expect(p.programs.p).toBe('S');

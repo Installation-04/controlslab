@@ -8,6 +8,7 @@ import { Link, useParams } from 'react-router-dom';
 import { z } from 'zod';
 import { useRegistry } from '../content';
 import { useT } from '../i18n';
+import { AssignedBadge } from '../routes/ClassSection';
 import { PanelWorkbench } from '../lab/PanelWorkbench';
 import { PlcStatusPanel } from '../lab/Panels';
 import { PlcEditor } from '../lab/PlcEditor';
@@ -90,7 +91,7 @@ export function CellsList() {
             <Link to={`/cells/${s.id}`}>
               <span className="num small">{s.number}</span>
               <span className="body">
-                <strong>{loc(s.title)}</strong>
+                <strong>{loc(s.title)}<AssignedBadge kind="scenarios" id={s.id} /></strong>
                 <span className="muted">{loc(s.complaint)}</span>
                 <span className="meta">{progress.orders[s.id]?.passed ? <b className="ok">✓ {t('wo.status.passed')}</b> : t('wo.status.todo')}</span>
               </span>

@@ -6,6 +6,7 @@ import { Markdown } from '../components/Markdown';
 import { OhmCalc } from '../components/OhmCalc';
 import { useRegistry } from '../content';
 import { useT } from '../i18n';
+import { AssignedBadge } from './ClassSection';
 import { Schematic } from '../lab/Schematic';
 import { actions, useProgress } from '../store/progress';
 import { Machine } from '@controlslab/sim';
@@ -27,7 +28,7 @@ export function LessonsList() {
               <Link to={`/lessons/${l.id}`}>
                 <span className="num">{l.order}</span>
                 <span className="body">
-                  <strong>{loc(l.title)}</strong>
+                  <strong>{loc(l.title)}<AssignedBadge kind="lessons" id={l.id} /></strong>
                   <span className="muted">{loc(l.summary)}</span>
                   <span className="meta">
                     {t('lessons.minutes', { n: l.minutes })}
