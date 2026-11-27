@@ -2,6 +2,7 @@
 import { useRegistry } from '../content';
 import { useT } from '../i18n';
 import { actions, useProgress } from '../store/progress';
+import { ClassSection } from './ClassSection';
 
 const fmtDate = (ms: number) => (ms ? new Date(ms).toLocaleDateString('fr-CA') : '—');
 
@@ -24,6 +25,8 @@ export function RecordPage() {
       </label>
       <p className="print-only strong">{p.profile.name}</p>
       <p className="muted small">{new Date().toLocaleDateString('fr-CA')} · {t('record.local')}</p>
+
+      <ClassSection />
 
       <h2>{t('record.lessons')}</h2>
       <table className="record-table">

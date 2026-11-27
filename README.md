@@ -14,11 +14,13 @@
 - **Éditeur Ladder** (LD) en plus du ST : contacts NO/NF/front, branches parallèles, bobines (normale, inversée, S/R), temporisateurs et compteurs, avec **écoulement de puissance en direct** pendant que l'automate tourne. Le Ladder est transcrit en ST lisible (visible dans l'éditeur) et exécuté par le même moteur.
 - **Pont Modbus TCP** : un petit connecteur (un seul fichier Node.js, multiplateforme) expose les E/S de la machine en **serveur Modbus TCP** pour piloter la simulation avec un **automate externe** (matériel ou logiciel). Voir [packages/connector](packages/connector/README.md).
 - **Cellule 3D** (three.js) : glissez-déposez un **panneau électrique**, des **convoyeurs**, un distributeur de boîtes, des **capteurs** (photoélectrique, inductif), un **vérin pousseur**, des boutons, voyants, colonnes lumineuses et bacs dans la scène. Chaque appareil se lie à une **adresse d'E/S** (`%IX1.0`, `%QX1.0`…) dans un inspecteur de propriétés, puis le programme ST pilote le tout. Double-clic sur le panneau pour l'ouvrir : même schéma interactif, multimètre et cadenassage que le laboratoire. **3 scénarios** inclus (convoyeur de base, lot de 3 boîtes, tri métal/plastique) + une **cellule libre**.
-- **8 leçons en français québécois** : loi d'Ohm · multimètre · cadenassage · lecture de schéma · premier programme ST · inverseur et verrouillage · Ladder · pince ampèremétrique.
+- **9 leçons en français québécois** (traduites en anglais) : loi d'Ohm · multimètre · cadenassage · lecture de schéma · premier programme ST · inverseur et verrouillage · Ladder · pince ampèremétrique · démarrage étoile-triangle. Machines supplémentaires : **démarreur étoile-triangle** (relais temporisé, moteur à six bornes), **deux convoyeurs en séquence** et **réservoir avec pompe** dans la cellule 3D.
+- **Éditeur de câblage de panneau** (`#/builder`) : placez des composants, tirez des fils entre les bornes, essayez le panneau sur le vrai simulateur, exportez en YAML; défi « démarreur à 3 fils » vérifié par simulation.
+- **Espace formateur sans serveur** (`#/instructor`) : créez une classe, assignez des travaux, remettez un fichier de classe; les apprenants exportent un rapport que le formateur importe pour voir la progression, les fautes de sécurité et rejouer les programmes remis. Aucun compte, aucune donnée envoyée automatiquement.
 - **Bons de travail** avec vérificateur automatique et **point de contrôle noté** (sans indices, défaut tiré au hasard).
 - **Progression locale** dans le navigateur, **dossier imprimable**, export/import (sauvegarde JSON, programmes `.st`, contenu communautaire YAML).
 
-Prévu ensuite : pont Modbus TCP vers des automates réels ou logiciels, éditeur de câblage de panneau (glisser-déposer des composants), tableaux de bord pour formateurs.
+Prévu ensuite : voir [PLAN.md](PLAN.md).
 
 ## Démarrage rapide
 

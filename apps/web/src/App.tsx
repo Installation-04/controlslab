@@ -11,6 +11,7 @@ import { RecordPage } from './routes/Record';
 import { SandboxPage } from './routes/Sandbox';
 
 // The 3D cell (three.js) is loaded on demand to keep the first page light.
+const InstructorPage = lazy(() => import('./routes/Instructor').then((m) => ({ default: m.InstructorPage })));
 const BuilderPage = lazy(() => import('./builder/BuilderPage').then((m) => ({ default: m.BuilderPage })));
 const CellsList = lazy(() => import('./cell/CellPage').then((m) => ({ default: m.CellsList })));
 const CellPage = lazy(() => import('./cell/CellPage').then((m) => ({ default: m.CellPage })));
@@ -32,6 +33,7 @@ export function App() {
           <NavLink to="/builder">{t('nav.builder')}</NavLink>
           <NavLink to="/checkpoint">{t('nav.checkpoint')}</NavLink>
           <NavLink to="/lab">{t('nav.sandbox')}</NavLink>
+          <NavLink to="/instructor">{t('nav.instructor')}</NavLink>
           <NavLink to="/record">{t('nav.record')}</NavLink>
           <NavLink to="/data">{t('nav.data')}</NavLink>
         </nav>
@@ -50,6 +52,7 @@ export function App() {
           <Route path="/orders/:id" element={<OrderPage />} />
           <Route path="/cells" element={<CellsList />} />
           <Route path="/cells/:id" element={<CellPage />} />
+          <Route path="/instructor" element={<InstructorPage />} />
           <Route path="/builder" element={<BuilderPage />} />
           <Route path="/checkpoint" element={<CheckpointPage />} />
           <Route path="/lab" element={<SandboxPage />} />
