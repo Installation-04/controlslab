@@ -3,3 +3,4 @@ export * from './schema';
 export * from './checker';
 export * from './cosim';
 export * from './load';
+export * from './classroom';

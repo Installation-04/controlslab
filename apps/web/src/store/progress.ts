@@ -21,7 +21,16 @@ export const Progress = z.object({
   v: z.literal(1),
   profile: z.object({ name: z.string().max(80) }),
   lessons: z.record(z.object({ done: z.boolean(), quiz: z.record(z.boolean()) })),
-  orders: z.record(z.object({ passed: z.boolean(), attempts: z.number(), lastAt: z.number() })),
+  orders: z.record(
+    z.object({
+      passed: z.boolean(),
+      attempts: z.number(),
+      lastAt: z.number(),
+      /** Safety violations (by code) and number of measurements, accumulated over the checks. */
+      violations: z.record(z.number()).default({}),
+      measures: z.number().default(0),
+    }),
+  ),
   checkpoints: z.record(z.array(CheckpointAttempt)),
   /** ST programs keyed by work-order id (or "sandbox"). */
   programs: z.record(z.string().max(200_000)),
@@ -78,11 +87,16 @@ export const actions = {
     const cur = state.lessons[lessonId] ?? { done: false, quiz: {} };
     commit({ ...state, lessons: { ...state.lessons, [lessonId]: { ...cur, quiz: { ...cur.quiz, [blockId]: correct } } } });
   },
-  recordOrder(id: string, passed: boolean) {
-    const cur = state.orders[id] ?? { passed: false, attempts: 0, lastAt: 0 };
+  recordOrder(id: string, passed: boolean, extra?: { violations?: Record<string, number>; measures?: number }) {
+    const cur = state.orders[id] ?? { passed: false, attempts: 0, lastAt: 0, violations: {}, measures: 0 };
+    const violations = { ...cur.violations };
+    for (const [code, n] of Object.entries(extra?.violations ?? {})) violations[code] = Math.max(violations[code] ?? 0, n);
     commit({
       ...state,
-      orders: { ...state.orders, [id]: { passed: cur.passed || passed, attempts: cur.attempts + 1, lastAt: Date.now() } },
+      orders: {
+        ...state.orders,
+        [id]: { passed: cur.passed || passed, attempts: cur.attempts + 1, lastAt: Date.now(), violations, measures: Math.max(cur.measures, extra?.measures ?? 0) },
+      },
     });
   },
   recordCheckpoint(id: string, attempt: CheckpointAttempt) {
@@ -103,7 +117,15 @@ export const actions = {
     const orders = { ...state.orders };
     for (const [id, o] of Object.entries(p.orders)) {
       const cur = orders[id];
-      orders[id] = cur ? { passed: cur.passed || o.passed, attempts: Math.max(cur.attempts, o.attempts), lastAt: Math.max(cur.lastAt, o.lastAt) } : o;
+      orders[id] = cur
+        ? {
+            passed: cur.passed || o.passed,
+            attempts: Math.max(cur.attempts, o.attempts),
+            lastAt: Math.max(cur.lastAt, o.lastAt),
+            violations: { ...o.violations, ...cur.violations },
+            measures: Math.max(cur.measures, o.measures),
+          }
+        : o;
     }
     const checkpoints = { ...state.checkpoints };
     for (const [id, list] of Object.entries(p.checkpoints)) {

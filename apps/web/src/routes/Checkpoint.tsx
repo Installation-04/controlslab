@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { Markdown } from '../components/Markdown';
 import { machineById, useRegistry } from '../content';
 import { useT } from '../i18n';
+import { AssignedBadge } from './ClassSection';
 import { Lab } from '../lab/Lab';
 import { actions, useProgress } from '../store/progress';
 import type { StringKey } from '../strings';
@@ -32,7 +33,7 @@ export function CheckpointPage() {
           <div className="seg" role="radiogroup" aria-label={t('nav.checkpoint')} style={{ marginBottom: 12, flexWrap: 'wrap' }}>
             {reg.checkpoints.map((c) => (
               <button key={c.id} role="radio" aria-checked={c.id === cp.id} className={c.id === cp.id ? 'sel' : ''} onClick={() => setCpId(c.id)} data-testid={`cp-pick-${c.id}`}>
-                {loc(c.title).replace(/^Point de contrôle \d+ — /, '')}
+                {loc(c.title).replace(/^(Point de contrôle|Checkpoint) \d+ — /, '')}<AssignedBadge kind="checkpoints" id={c.id} />
               </button>
             ))}
           </div>

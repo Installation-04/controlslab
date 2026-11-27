@@ -14,11 +14,13 @@ Write PLC programs, measure circuits with a virtual multimeter, troubleshoot fau
 - **Ladder editor** (LD) alongside ST: NO/NC/edge contacts, parallel branches, coils (normal, negated, set/reset), timers and counters, with **live power flow** while the PLC runs. Ladder is transpiled to readable ST (shown in the editor) and run by the same engine.
 - **Modbus TCP bridge**: a small connector (single cross-platform Node.js file) exposes the machine I/O as a **Modbus TCP server** so an **external PLC** (hardware or software) can drive the simulation. See [packages/connector](packages/connector/README.md).
 - **3D cell** (three.js): drag-and-drop an **electrical panel**, **conveyors**, a box dispenser, **sensors** (photoelectric, inductive), a **pusher cylinder**, buttons, lights, stack lights and bins into the scene. Each device binds to a **PLC I/O address** (`%IX1.0`, `%QX1.0`…) in a property inspector, and the ST program drives it all. Double-click the panel to open it: same interactive schematic, multimeter and lockout as the lab. **3 scenarios** included (basic conveyor, batch of 3, metal/plastic sorter) plus a **free cell**.
-- **8 lessons** (Québec French, English UI strings ready): Ohm's law · multimeter · LOTO · reading a schematic · first ST program · reversing starter & interlocking · Ladder · clamp meter.
+- **9 lessons** (Québec French, fully translated to English): Ohm's law · multimeter · LOTO · reading a schematic · first ST program · reversing starter & interlocking · Ladder · clamp meter · star-delta starting. More machines: a **star-delta starter** (timer relay, 6-terminal motor), **two conveyors in sequence** and a **tank with pump** in the 3D cell.
+- **Panel wiring editor** (`#/builder`): place components, draw wires between terminals, try the panel on the real simulator, export to YAML; a "3-wire starter" challenge checked by simulation.
+- **Serverless instructor workspace** (`#/instructor`): create a class, assign work and hand out a class file; learners export a report that the instructor imports to see progress and safety violations and to replay the submitted programs. No account, nothing sent automatically.
 - **Work orders** with an automatic checker, and **2 scored checkpoints** (no hints, random fault).
 - **Local progress** in the browser, **printable record**, export/import (JSON backup, `.st` programs, community YAML content).
 
-Planned: Modbus TCP bridge to real/soft PLCs, a drag-and-drop panel *wiring* editor, instructor dashboards.
+Planned: see [PLAN.md](PLAN.md).
 
 ## Quick start
 
