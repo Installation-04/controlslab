@@ -2,7 +2,7 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · Versions: [SemVer](https://semver.org/lang/fr/).
 
-## [Non publié / Unreleased]
+## [0.5.0] — Espace formateur
 
 ### Ajouté / Added
 - **Espace formateur sans serveur** (`#/instructor`) : classe avec code, travaux assignés (leçons, bons de travail, points de contrôle, scénarios 3D), fichier de classe à remettre aux apprenants; les apprenants joignent la classe depuis le Dossier (badge « Assigné » dans les listes) et exportent un rapport JSON; le formateur importe les rapports, voit le tableau de progression (résultats, note des points de contrôle, fautes de sécurité, mesures) et **rejoue les programmes remis** contre les tests. Les rapports sont déclaratifs. Modèle et agrégation dans `@controlslab/content` (`classroom.ts`).
